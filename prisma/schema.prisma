@@ -1,0 +1,204 @@
+// This is your Prisma schema file for CollabBoard
+// Based on Gumboard (MIT License) - Enhanced with additional features
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id             String       @id @default(cuid())
+  name           String?
+  email          String       @unique
+  emailVerified  DateTime?
+  image          String?
+  accounts       Account[]
+  sessions       Session[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organizationId String?
+  isAdmin        Boolean      @default(false)
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  invitedOrganizations OrganizationInvite[]
+  createdSelfServeInvites OrganizationSelfServeInvite[]
+  notes          Note[]
+  activities     Activity[]
+
+  @@index([organizationId], name: "idx_user_org")
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slackWebhookUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members   User[]
+  invites   OrganizationInvite[]
+  boards    Board[]
+  selfServeInvites OrganizationSelfServeInvite[]
+  activities Activity[]
+
+  @@map("organizations")
+}
+
+model Board {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  isPublic       Boolean      @default(false)
+  sendSlackUpdates Boolean    @default(true)
+  templateId     String?      // NEW: Link to template if created from one
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  notes          Note[]
+  activities     Activity[]
+
+  @@index([organizationId, createdAt], name: "idx_board_org_created")
+  @@map("boards")
+}
+
+model Note {
+  id        String @id @default(cuid())
+  color     String @default("#fef3c7")
+  checklistItems ChecklistItem[]
+  dueDate        DateTime?     // NEW: Due date for the note/task
+  archivedAt     DateTime?
+  slackMessageId String?
+  boardId   String
+  board     Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdBy String
+  user      User   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([boardId, deletedAt], name: "idx_note_board_deleted")
+  @@index([boardId, createdAt], name: "idx_note_board_created")
+  @@index([createdBy, deletedAt], name: "idx_note_user_deleted")
+  @@index([dueDate], name: "idx_note_due_date")
+  @@map("notes")
+}
+
+model ChecklistItem {
+  id             String   @id @default(cuid())
+  content        String   @db.Text
+  checked        Boolean  @default(false)
+  order          Int      @default(0)
+  noteId         String
+  slackMessageId String?
+  note           Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("checklist_items")
+  @@index([noteId])
+  @@index([noteId, order])
+}
+
+// NEW: Activity tracking for audit trail
+model Activity {
+  id             String       @id @default(cuid())
+  action         String       // e.g., "created", "updated", "deleted", "archived"
+  entityType     String       // e.g., "note", "board", "checklist_item"
+  entityId       String       // ID of the affected entity
+  details        String?      @db.Text // JSON string with additional details
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  boardId        String?
+  board          Board?       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([boardId, createdAt], name: "idx_activity_board")
+  @@index([organizationId, createdAt], name: "idx_activity_org")
+  @@index([userId, createdAt], name: "idx_activity_user")
+  @@map("activities")
+}
+
+model OrganizationInvite {
+  id             String       @id @default(cuid())
+  email          String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy      String
+  user           User         @relation(fields: [invitedBy], references: [id])
+  createdAt      DateTime     @default(now())
+  status         InviteStatus @default(PENDING)
+
+  @@unique([email, organizationId])
+  @@map("organization_invites")
+}
+
+model OrganizationSelfServeInvite {
+  id             String       @id @default(cuid())
+  token          String?      @unique
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      String
+  user           User         @relation(fields: [createdBy], references: [id])
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime?
+  usageLimit     Int?
+  usageCount     Int          @default(0)
+  isActive       Boolean      @default(true)
+
+  @@map("organization_self_serve_invites")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}

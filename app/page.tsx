@@ -1,102 +1,151 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import { LayoutGrid, Users, Zap, Clock, Search, Activity } from "lucide-react";
 
-export default function Home() {
+const features = [
+  {
+    icon: LayoutGrid,
+    title: "Collaborative Boards",
+    description: "Create unlimited boards with sticky notes and checklists. Organize tasks visually and intuitively.",
+  },
+  {
+    icon: Users,
+    title: "Team Workspaces",
+    description: "Invite team members, manage permissions, and collaborate in real-time across projects.",
+  },
+  {
+    icon: Zap,
+    title: "Real-Time Updates",
+    description: "See changes instantly as your team works. No refresh needed, stay in sync automatically.",
+  },
+  {
+    icon: Clock,
+    title: "Due Dates & Reminders",
+    description: "Set deadlines on tasks with visual indicators for overdue items. Never miss a deadline.",
+  },
+  {
+    icon: Search,
+    title: "Advanced Search",
+    description: "Find any note or task instantly with powerful search and filtering capabilities.",
+  },
+  {
+    icon: Activity,
+    title: "Activity Timeline",
+    description: "Track all changes with a complete audit trail. See who did what and when.",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Header */}
+      <header className="border-b">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2">
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/logo/collabboard.svg"
+              alt="CollabBoard"
+              width={32}
+              height={32}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <span className="text-xl font-bold">CollabBoard</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link href="/auth/signin">Sign In</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/auth/signin">Get Started Free</Link>
+            </Button>
+          </div>
         </div>
+      </header>
+
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 py-24 md:py-32">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+              Organize Your Team&apos;s Tasks in{" "}
+              <span className="text-primary">Real-Time</span>
+            </h1>
+            <p className="mb-8 text-lg text-muted-foreground md:text-xl">
+              CollabBoard is the real-time collaboration platform that helps your team stay
+              aligned. Create boards, add tasks, collaborate seamlessly.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+              <Button size="lg" asChild>
+                <Link href="/auth/signin">Start Collaborating - It&apos;s Free</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="#features">Learn More</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="bg-muted/50 py-24">
+          <div className="container mx-auto px-4">
+            <div className="mb-12 text-center">
+              <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                Everything You Need to Stay Organized
+              </h2>
+              <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+                CollabBoard brings your team together with powerful collaboration tools designed
+                for modern workflows.
+              </p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {features.map((feature) => {
+                const IconComponent = feature.icon;
+                return (
+                  <Card key={feature.title}>
+                    <CardContent className="pt-6">
+                      <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-3">
+                        <IconComponent className="h-6 w-6 text-primary" />
+                      </div>
+                      <CardTitle className="mb-2 text-xl">{feature.title}</CardTitle>
+                      <CardDescription>{feature.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                Ready to Get Started?
+              </h2>
+              <p className="mb-8 text-lg text-muted-foreground">
+                Join teams around the world using CollabBoard to stay organized and productive.
+              </p>
+              <Button size="lg" asChild>
+                <Link href="/auth/signin">Create Your First Board</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="border-t py-8">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+          <p>
+            © {new Date().getFullYear()} CollabBoard. Built with ❤️ for teams everywhere.
+          </p>
+          <p className="mt-2 text-xs">
+            Based on Gumboard (MIT License) - Original © 2025 Gumroad, Inc.
+          </p>
+        </div>
       </footer>
     </div>
   );
