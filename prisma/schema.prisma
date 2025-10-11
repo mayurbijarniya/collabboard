@@ -1,5 +1,5 @@
 // This is your Prisma schema file for CollabBoard
-// Based on Gumboard (MIT License) - Enhanced with additional features
+// Based on CollabBoard (MIT License) - Enhanced with additional features
 
 generator client {
   provider = "prisma-client-js"

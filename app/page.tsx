@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { LayoutGrid, Users, Zap, Clock, Search, Activity } from "lucide-react";
+import { StatsSection } from "@/components/stats-section";
 
 const features = [
   {
@@ -118,6 +119,9 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Stats Section */}
+        <StatsSection />
+
         {/* CTA Section */}
         <section className="py-24">
           <div className="container mx-auto px-4">
@@ -143,7 +147,7 @@ export default function HomePage() {
             © {new Date().getFullYear()} CollabBoard. Built with ❤️ for teams everywhere.
           </p>
           <p className="mt-2 text-xs">
-            Based on Gumboard (MIT License) - Original © 2025 Gumroad, Inc.
+            Based on CollabBoard (MIT License) - Original © 2025 Gumroad, Inc.
           </p>
         </div>
       </footer>
