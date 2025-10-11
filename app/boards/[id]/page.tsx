@@ -9,12 +9,14 @@ import Link from "next/link";
 import { FullPageLoader } from "@/components/ui/loader";
 import { Note as NoteCard, type Note, type Board, type User } from "@/components/note";
 import { NoteEditor } from "@/components/note-editor";
+import { SearchFilter } from "@/components/search-filter";
 import { useUser } from "@/app/contexts/UserContext";
 import { toast } from "sonner";
 
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const [board, setBoard] = useState<Board | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const { user, loading: userLoading } = useUser();
@@ -44,6 +46,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
         if (notesResponse.ok) {
           const notesData = await notesResponse.json();
           setNotes(notesData);
+          setFilteredNotes(notesData);
         }
       } catch (error) {
         console.error("Error fetching board:", error);
@@ -75,6 +78,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       if (response.ok) {
         const newNote = await response.json();
         setNotes((prev) => [newNote, ...prev]);
+        setFilteredNotes((prev) => [newNote, ...prev]);
         toast.success("Note created");
       } else {
         throw new Error("Failed to create note");
@@ -87,10 +91,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
   const handleUpdateNote = (updatedNote: Note) => {
     setNotes((prev) => prev.map((note) => (note.id === updatedNote.id ? updatedNote : note)));
+    setFilteredNotes((prev) => prev.map((note) => (note.id === updatedNote.id ? updatedNote : note)));
   };
 
   const handleDeleteNote = (noteId: string) => {
     setNotes((prev) => prev.filter((note) => note.id !== noteId));
+    setFilteredNotes((prev) => prev.filter((note) => note.id !== noteId));
     toast.success("Note deleted");
   };
 
@@ -98,11 +104,17 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     setNotes((prev) => prev.map((note) => 
       note.id === noteId ? { ...note, archivedAt: new Date().toISOString() } : note
     ));
+    setFilteredNotes((prev) => prev.map((note) => 
+      note.id === noteId ? { ...note, archivedAt: new Date().toISOString() } : note
+    ));
     toast.success("Note archived");
   };
 
   const handleUnarchiveNote = (noteId: string) => {
     setNotes((prev) => prev.map((note) => 
+      note.id === noteId ? { ...note, archivedAt: null } : note
+    ));
+    setFilteredNotes((prev) => prev.map((note) => 
       note.id === noteId ? { ...note, archivedAt: null } : note
     ));
     toast.success("Note restored");
@@ -122,6 +134,9 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
       if (response.ok) {
         setNotes((prev) => prev.map((note) => 
+          note.id === updatedNote.id ? updatedNote : note
+        ));
+        setFilteredNotes((prev) => prev.map((note) => 
           note.id === updatedNote.id ? updatedNote : note
         ));
         toast.success("Note updated");
@@ -189,7 +204,15 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
       {/* Board Content */}
       <div className="container mx-auto px-4 py-8">
-        {notes.length === 0 ? (
+        {/* Search and Filters */}
+        <div className="mb-6">
+          <SearchFilter 
+            notes={notes} 
+            onFilteredNotes={setFilteredNotes}
+          />
+        </div>
+
+        {filteredNotes.length === 0 ? (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto">
               <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-lg flex items-center justify-center">
@@ -207,7 +230,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {notes.map((note) => (
+            {filteredNotes.map((note) => (
               <NoteCard
                 key={note.id}
                 note={note}
