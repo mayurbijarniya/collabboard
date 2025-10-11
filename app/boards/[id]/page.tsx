@@ -8,6 +8,7 @@ import { Plus, Settings, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { FullPageLoader } from "@/components/ui/loader";
 import { Note as NoteCard, type Note, type Board, type User } from "@/components/note";
+import { NoteEditor } from "@/components/note-editor";
 import { useUser } from "@/app/contexts/UserContext";
 import { toast } from "sonner";
 
@@ -15,6 +16,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   const [board, setBoard] = useState<Board | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
 
@@ -106,6 +108,32 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     toast.success("Note restored");
   };
 
+  const handleEditNote = async (updatedNote: Note) => {
+    try {
+      const response = await fetch(`/api/notes/${updatedNote.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dueDate: updatedNote.dueDate,
+          priority: updatedNote.priority,
+          color: updatedNote.color,
+        }),
+      });
+
+      if (response.ok) {
+        setNotes((prev) => prev.map((note) => 
+          note.id === updatedNote.id ? updatedNote : note
+        ));
+        toast.success("Note updated");
+      } else {
+        throw new Error("Failed to update note");
+      }
+    } catch (error) {
+      console.error("Error updating note:", error);
+      toast.error("Failed to update note");
+    }
+  };
+
   if (userLoading || loading) {
     return <FullPageLoader />;
   }
@@ -188,11 +216,22 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                 onDelete={handleDeleteNote}
                 onArchive={handleArchiveNote}
                 onUnarchive={handleUnarchiveNote}
+                onEdit={setEditingNote}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Note Editor */}
+      {editingNote && (
+        <NoteEditor
+          note={editingNote}
+          open={!!editingNote}
+          onOpenChange={(open) => !open && setEditingNote(null)}
+          onSave={handleEditNote}
+        />
+      )}
     </div>
   );
 }

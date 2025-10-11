@@ -12,9 +12,10 @@ import {
 } from "@/components/checklist-item";
 import { DraggableRoot, DraggableContainer, DraggableItem } from "@/components/ui/draggable";
 import { cn } from "@/lib/utils";
-import { Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { Trash2, Archive, ArchiveRestore, Calendar, Clock, Edit } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { format, isAfter, isBefore, isToday } from "date-fns";
 
 // Core domain types
 export interface User {
@@ -37,6 +38,8 @@ export interface Note {
   archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  dueDate?: string | null;
+  priority?: "LOW" | "MEDIUM" | "HIGH" | null;
   checklistItems?: ChecklistItem[];
   user: {
     id: string;
@@ -64,6 +67,7 @@ interface NoteProps {
   onDelete?: (noteId: string) => void;
   onArchive?: (noteId: string) => void;
   onUnarchive?: (noteId: string) => void;
+  onEdit?: (note: Note) => void;
   readonly?: boolean;
   showBoardName?: boolean;
   className?: string;
@@ -77,6 +81,7 @@ export function Note({
   onDelete,
   onArchive,
   onUnarchive,
+  onEdit,
   readonly = false,
   showBoardName = false,
   className,
@@ -235,6 +240,25 @@ export function Note({
 
   const isArchived = !!note.archivedAt;
 
+  // Calculate due date status
+  const getDueDateStatus = () => {
+    if (!note.dueDate) return null;
+    
+    const dueDate = new Date(note.dueDate);
+    const now = new Date();
+    
+    if (isBefore(dueDate, now) && !isToday(dueDate)) {
+      return { status: "overdue", color: "text-red-600", bgColor: "bg-red-50" };
+    } else if (isToday(dueDate)) {
+      return { status: "due-today", color: "text-orange-600", bgColor: "bg-orange-50" };
+    } else if (isAfter(dueDate, now)) {
+      return { status: "upcoming", color: "text-blue-600", bgColor: "bg-blue-50" };
+    }
+    return null;
+  };
+
+  const dueDateStatus = getDueDateStatus();
+
   return (
     <div
       className={cn(
@@ -263,6 +287,22 @@ export function Note({
 
         {canEdit && (
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {!isArchived && onEdit && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-black/70 hover:text-black"
+                    onClick={() => onEdit(note)}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit note</TooltipContent>
+              </Tooltip>
+            )}
+
             {isArchived ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -320,6 +360,36 @@ export function Note({
             >
               {note.board.name}
             </Link>
+          </div>
+        )}
+
+        {/* Due Date and Priority */}
+        {(note.dueDate || note.priority) && (
+          <div className="mb-3 flex items-center gap-2">
+            {note.dueDate && (
+              <div className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded text-xs font-medium",
+                dueDateStatus?.bgColor || "bg-gray-100",
+                dueDateStatus?.color || "text-gray-600"
+              )}>
+                <Calendar className="h-3 w-3" />
+                <span>{format(new Date(note.dueDate), "MMM d")}</span>
+                {dueDateStatus?.status === "overdue" && (
+                  <Clock className="h-3 w-3" />
+                )}
+              </div>
+            )}
+            
+            {note.priority && (
+              <div className={cn(
+                "px-2 py-1 rounded text-xs font-medium",
+                note.priority === "HIGH" && "bg-red-100 text-red-700",
+                note.priority === "MEDIUM" && "bg-yellow-100 text-yellow-700",
+                note.priority === "LOW" && "bg-green-100 text-green-700"
+              )}>
+                {note.priority}
+              </div>
+            )}
           </div>
         )}
 
