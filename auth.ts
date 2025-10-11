@@ -5,10 +5,25 @@ import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import prisma from "@/lib/db";
 
+// Development email provider that logs to console
+const DevEmailProvider = {
+  id: "dev-email",
+  name: "Email (Dev)",
+  type: "email" as const,
+  sendVerificationRequest: async ({ identifier: email, url }: { identifier: string; url: string }) => {
+    console.log(`\n🔗 Magic Link for ${email}:`);
+    console.log(`   ${url}\n`);
+    console.log("📧 In production, this would be sent via email");
+  },
+};
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
-    ...(process.env.AUTH_RESEND_KEY && process.env.EMAIL_FROM
+    // Use dev email provider in development, Resend in production
+    ...(process.env.NODE_ENV === "development"
+      ? [DevEmailProvider]
+      : process.env.AUTH_RESEND_KEY && process.env.EMAIL_FROM
       ? [
           Resend({
             from: process.env.EMAIL_FROM,
