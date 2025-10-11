@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Grid3x3, Archive } from "lucide-react";
+import { Plus, Grid3x3, Archive, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FullPageLoader } from "@/components/ui/loader";
 import {
@@ -183,6 +183,15 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
+            {user?.isAdmin && (
+              <Link href="/settings/team">
+                <Button variant="outline" className="flex items-center space-x-1 sm:space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Team</span>
+                </Button>
+              </Link>
+            )}
+            
             <Button
               onClick={() => {
                 form.reset({ name: "", description: "" });
