@@ -129,14 +129,24 @@ export default function TeamPage() {
 
   const handleCopyInviteLink = async () => {
     try {
-      // In a real app, you'd generate a proper invite link
-      const inviteLink = `${window.location.origin}/invite/self-serve`;
-      await navigator.clipboard.writeText(inviteLink);
-      setCopiedInviteLink(true);
-      toast.success("Invite link copied to clipboard");
-      setTimeout(() => setCopiedInviteLink(false), 2000);
+      const response = await fetch("/api/self-serve-invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expiresInDays: 7, maxUses: 10 }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        await navigator.clipboard.writeText(data.inviteUrl);
+        setCopiedInviteLink(true);
+        toast.success("Invite link copied to clipboard");
+        setTimeout(() => setCopiedInviteLink(false), 2000);
+      } else {
+        throw new Error("Failed to generate invite link");
+      }
     } catch (error) {
-      toast.error("Failed to copy invite link");
+      console.error("Error generating invite link:", error);
+      toast.error("Failed to generate invite link");
     }
   };
 
@@ -200,21 +210,30 @@ export default function TeamPage() {
               </div>
               
               <div className="mt-4 pt-4 border-t">
-                <p className="text-sm text-muted-foreground mb-2">Or share this link:</p>
+                <p className="text-sm text-muted-foreground mb-2">Or generate a shareable link:</p>
                 <div className="flex gap-2">
-                  <Input
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/invite/self-serve`}
-                    readOnly
-                    className="flex-1"
-                  />
                   <Button 
                     variant="outline" 
                     onClick={handleCopyInviteLink}
                     disabled={copiedInviteLink}
+                    className="flex-1"
                   >
-                    {copiedInviteLink ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copiedInviteLink ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Link Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Generate & Copy Link
+                      </>
+                    )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Generates a link that expires in 7 days and can be used up to 10 times.
+                </p>
               </div>
             </CardContent>
           </Card>
