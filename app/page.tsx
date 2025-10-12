@@ -12,25 +12,25 @@ import { BetaBadge } from "@/components/ui/beta-badge";
 const features = [
   {
     icon: StickyNote,
-    title: "Sticky notes & tasks",
+    title: "Visual project boards",
     description:
-      "Create colorful sticky notes with interactive checklists to track your team's progress.",
+      "Create dynamic boards with smart notes, checklists, and visual elements that bring your ideas to life.",
     iconBgColor: "bg-blue-100 dark:bg-blue-900/30",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Users,
-    title: "Real-time collaboration",
+    title: "Seamless teamwork",
     description:
-      "Work together seamlessly with your team in real-time. See updates instantly as they happen.",
+      "Collaborate in real-time with your team. Share ideas, assign tasks, and watch progress unfold together.",
     iconBgColor: "bg-green-100 dark:bg-green-900/30",
     iconColor: "text-green-600 dark:text-green-400",
   },
   {
     icon: Building2,
-    title: "Organization management",
+    title: "Smart organization",
     description:
-      "Invite team members, manage permissions, and keep your workspace organized across projects.",
+      "Organize projects with intelligent boards, team permissions, and workflow automation that scales with you.",
     iconBgColor: "bg-purple-100 dark:bg-purple-900/30",
     iconColor: "text-purple-600 dark:text-purple-400",
   },
@@ -59,11 +59,11 @@ export default async function HomePage() {
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Keep on top of your team&apos;s to-dos.
+                    Transform ideas into action together.
                   </h1>
                   <p className="max-w-[600px] text-slate-600 md:text-xl dark:text-zinc-300">
-                    CollabBoard is the free, real-time sticky note board that helps your team stay
-                    aligned. Try the interactive demo—add notes, edit text, and complete tasks.
+                    CollabBoard is your team's visual workspace where creativity meets productivity. 
+                    Brainstorm, plan, and execute projects with intuitive boards that adapt to your workflow.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -85,11 +85,10 @@ export default async function HomePage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
-                Everything you need to stay organized
+                Built for modern teams
               </h2>
               <p className="text-slate-600 text-lg max-w-2xl mx-auto dark:text-zinc-300">
-                CollabBoard brings your team together with powerful collaboration tools designed for
-                modern workflows.
+                CollabBoard combines simplicity with powerful features to help teams turn their best ideas into reality.
               </p>
             </div>
 
