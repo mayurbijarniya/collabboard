@@ -129,7 +129,7 @@ export default async function HomePage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Mayur Bijarniya
+            Mayur
           </Link>
           {" • "}
           <Link
