@@ -62,7 +62,7 @@ export default async function HomePage() {
                     Transform ideas into action together.
                   </h1>
                   <p className="max-w-[600px] text-slate-600 md:text-xl dark:text-zinc-300">
-                    CollabBoard is your team's visual workspace where creativity meets productivity. 
+                    CollabBoard is your team&apos;s visual workspace where creativity meets productivity. 
                     Brainstorm, plan, and execute projects with intuitive boards that adapt to your workflow.
                   </p>
                 </div>
