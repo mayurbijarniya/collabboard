@@ -133,9 +133,9 @@ function DateRangePicker({
                       outside: "text-gray-400 opacity-50 pointer-events-none",
                     }}
                     classNames={{
-                      day: "hover:bg-sky-500 hover:text-white transition-colors duration-200 rounded",
+                      day: "hover:bg-blue-500 hover:text-white transition-colors duration-200 rounded",
                       disabled: "opacity-50 cursor-not-allowed hover:bg-transparent",
-                      selected: "bg-sky-500 text-white hover:bg-sky-600",
+                      selected: "bg-blue-500 text-white hover:bg-blue-600",
                     }}
                   />
                 </PopoverContent>
@@ -170,9 +170,9 @@ function DateRangePicker({
                       outside: "text-gray-400 opacity-50 pointer-events-none",
                     }}
                     classNames={{
-                      day: "hover:bg-sky-500 hover:text-white transition-colors duration-200 rounded",
+                      day: "hover:bg-blue-500 hover:text-white transition-colors duration-200 rounded",
                       disabled: "opacity-50 cursor-not-allowed hover:bg-transparent",
-                      selected: "bg-sky-500 text-white hover:bg-sky-600",
+                      selected: "bg-blue-500 text-white hover:bg-blue-600",
                     }}
                   />
                 </PopoverContent>
@@ -195,7 +195,7 @@ function DateRangePicker({
               data-testid="apply-btn"
               size="sm"
               onClick={handleApply}
-              className="bg-sky-600 text-white dark:bg-zinc-800 hover:bg-sky-500 dark:hover:bg-zinc-700"
+              className="bg-blue-600 text-white dark:bg-zinc-800 hover:bg-blue-500 dark:hover:bg-zinc-700"
             >
               Apply
             </Button>

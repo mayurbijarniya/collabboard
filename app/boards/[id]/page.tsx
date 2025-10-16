@@ -733,7 +733,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                         data-board-id={b.id}
                         className={`rounded-lg block font-medium px-3 py-1.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:hover:text-white truncate ${
                           b.id === boardId
-                            ? "bg-sky-50 dark:bg-sky-600 text-foreground dark:text-zinc-100 font-semibold"
+                            ? "bg-blue-50 dark:bg-blue-600 text-foreground dark:text-zinc-100 font-semibold"
                             : "text-foreground dark:text-zinc-100"
                         } turncate whitespace-nowrap`}
                       >
@@ -850,7 +850,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
                   }}
-                  className="w-full pl-10 pr-8 py-2 border border-zinc-100 dark:border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-600 dark:focus:ring-sky-600 focus:border-transparent text-sm bg-background dark:bg-zinc-900 text-foreground dark:text-zinc-100 placeholder:text-muted-foreground dark:placeholder:text-zinc-400"
+                  className="w-full pl-10 pr-8 py-2 border border-zinc-100 dark:border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-600 focus:border-transparent text-sm bg-background dark:bg-zinc-900 text-foreground dark:text-zinc-100 placeholder:text-muted-foreground dark:placeholder:text-zinc-400"
                 />
                 {searchTerm && (
                   <Button

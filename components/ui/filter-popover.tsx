@@ -64,7 +64,7 @@ function FilterPopover({
                 <ListFilter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-foreground">
                   {filterCount > 0 && (
-                    <span className="px-1.5 py-0.5 text-xs bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 rounded">
+                    <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded">
                       {filterCount}
                     </span>
                   )}
@@ -102,7 +102,7 @@ function FilterPopover({
                     className={cn(
                       "w-full justify-start text-left flex items-center space-x-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-2 h-auto",
                       !selectedAuthor &&
-                        "bg-blue-50  hover:bg-blue-50 text-sky-600 dark:text-zinc-200 dark:bg-zinc-800"
+                        "bg-blue-50  hover:bg-blue-50 text-blue-600 dark:text-zinc-200 dark:bg-zinc-800"
                     )}
                   >
                     <Avatar className="w-6 h-6">
@@ -128,7 +128,7 @@ function FilterPopover({
                       <Avatar className="w-6 h-6">
                         <AvatarImage src={author.image || ""} />
                         <AvatarFallback>
-                          <div className="w-6 h-6 bg-sky-600 text-primary-foreground rounded-full flex items-center justify-center flex-shrink-0">
+                          <div className="w-6 h-6 bg-blue-600 text-primary-foreground rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-xs font-medium text-white">
                               {author.name.charAt(0).toUpperCase()}
                             </span>
