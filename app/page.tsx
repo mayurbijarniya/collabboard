@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { StickyNote, Users, Building2 } from "lucide-react";
+import { Layout, Users, Zap } from "lucide-react";
 import { StickyNotesDemo } from "@/components/sticky-notes-demo";
 import { StatsSection } from "@/components/stats-section";
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,28 +11,28 @@ import { BetaBadge } from "@/components/ui/beta-badge";
 
 const features = [
   {
-    icon: StickyNote,
-    title: "Visual project boards",
+    icon: Layout,
+    title: "Visual Workspace",
     description:
       "Create dynamic boards with smart notes, checklists, and visual elements that bring your ideas to life.",
-    iconBgColor: "bg-blue-100 dark:bg-blue-900/30",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-50 dark:bg-blue-900/20",
   },
   {
     icon: Users,
-    title: "Seamless teamwork",
+    title: "Team Collaboration",
     description:
       "Collaborate in real-time with your team. Share ideas, assign tasks, and watch progress unfold together.",
-    iconBgColor: "bg-green-100 dark:bg-green-900/30",
-    iconColor: "text-green-600 dark:text-green-400",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
   },
   {
-    icon: Building2,
-    title: "Smart organization",
+    icon: Zap,
+    title: "Smart Organization",
     description:
       "Organize projects with intelligent boards, team permissions, and workflow automation that scales with you.",
-    iconBgColor: "bg-purple-100 dark:bg-purple-900/30",
-    iconColor: "text-purple-600 dark:text-purple-400",
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-50 dark:bg-purple-900/20",
   },
 ];
 
@@ -44,43 +44,58 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="flex min-h-[100dvh] flex-col bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100">
       <main className="flex-1">
-        <section className="w-full py-12 md:py-15">
+        {/* Hero Section */}
+        <section className="w-full py-8 md:py-12 bg-white dark:bg-zinc-900">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16 xl:gap-24">
-              <div className="flex flex-col justify-center space-y-6 lg:mt-14">
+            <div className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-28">
+              <div className="flex flex-col justify-center space-y-8">
+                {/* Logo and Brand */}
                 <div className="flex items-center gap-3">
                   <Link href="https://github.com/mayurbijarniya/collabboard" passHref>
                     <Image src="/logo/collabboard.svg" alt="CollabBoard" width={50} height={50} />
                   </Link>
-                  <span className="text-4xl font-bold">CollabBoard</span>
+                  <span className="text-4xl font-bold text-slate-900 dark:text-white">
+                    CollabBoard
+                  </span>
                   <BetaBadge />
                 </div>
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Transform ideas into action together.
+
+                {/* Hero Content */}
+                <div className="space-y-6">
+                  <h1 className="text-5xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none text-slate-900 dark:text-white">
+                    Transform ideas into
+                    <span className="text-blue-600 dark:text-blue-400"> action together</span>
                   </h1>
-                  <p className="max-w-[600px] text-slate-600 md:text-xl dark:text-zinc-300">
-                    CollabBoard is your team&apos;s visual workspace where creativity meets productivity. 
-                    Brainstorm, plan, and execute projects with intuitive boards that adapt to your workflow.
+                  <p className="max-w-[600px] text-xl text-slate-600 dark:text-zinc-300 leading-relaxed">
+                    CollabBoard is your team's visual workspace where creativity meets productivity.
+                    Brainstorm, plan, and execute projects with intuitive boards that adapt to your
+                    workflow.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+
+                {/* CTA Button */}
+                <div className="flex flex-col gap-4 min-[400px]:flex-row">
                   <Button
                     asChild
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-white dark:text-black dark:hover:bg-zinc-100"
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8 py-4 text-lg"
                   >
                     <Link href="/auth/signin">Get started - it&apos;s free</Link>
                   </Button>
                 </div>
               </div>
-              <StickyNotesDemo />
+
+              {/* Demo Section */}
+              <div>
+                <StickyNotesDemo />
+              </div>
             </div>
           </div>
         </section>
 
+        {/* Features Section */}
         <section className="w-full py-16 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
@@ -88,7 +103,8 @@ export default async function HomePage() {
                 Built for modern teams
               </h2>
               <p className="text-slate-600 text-lg max-w-2xl mx-auto dark:text-zinc-300">
-                CollabBoard combines simplicity with powerful features to help teams turn their best ideas into reality.
+                CollabBoard combines simplicity with powerful features to help teams turn their best
+                ideas into reality.
               </p>
             </div>
 
@@ -102,9 +118,9 @@ export default async function HomePage() {
                   >
                     <CardContent>
                       <div
-                        className={`w-12 h-12 mx-auto mb-4 ${feature.iconBgColor} rounded-lg flex items-center justify-center`}
+                        className={`w-12 h-12 mx-auto mb-4 ${feature.bgColor} rounded-lg flex items-center justify-center`}
                       >
-                        <IconComponent className={`h-6 w-6 ${feature.iconColor}`} />
+                        <IconComponent className={`h-6 w-6 ${feature.color}`} />
                       </div>
                       <CardTitle className="mb-2">{feature.title}</CardTitle>
                       <CardDescription className="dark:text-zinc-300">
@@ -120,6 +136,8 @@ export default async function HomePage() {
 
         <StatsSection />
       </main>
+
+      {/* Footer */}
       <footer className="w-full border-t border-slate-200 py-6 dark:border-zinc-800">
         <div className="container mx-auto text-center text-sm text-slate-600 dark:text-zinc-400">
           A project by{" "}
