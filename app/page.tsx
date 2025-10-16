@@ -49,8 +49,8 @@ export default async function HomePage() {
         {/* Hero Section */}
         <section className="w-full py-8 md:py-12 bg-white dark:bg-zinc-900">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-28">
-              <div className="flex flex-col justify-center space-y-8">
+            <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16 xl:gap-24">
+              <div className="flex flex-col justify-center space-y-6 lg:mt-14">
                 {/* Logo and Brand */}
                 <div className="flex items-center gap-3">
                   <Link href="https://github.com/mayurbijarniya/collabboard" passHref>
