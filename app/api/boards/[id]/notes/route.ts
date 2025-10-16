@@ -103,6 +103,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           boardId: true,
           archivedAt: true,
         })
+        .extend({
+          assignedUserId: z.string().optional(), // Allow admins to assign to specific users
+        })
         .parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -113,13 +116,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
       throw error;
     }
-    const { color, checklistItems } = validatedBody;
+    const { color, checklistItems, assignedUserId } = validatedBody;
 
     // Verify user has access to this board (same organization)
     const user = await db.user.findUnique({
       where: { id: session.user.id },
       select: {
         organizationId: true,
+        isAdmin: true,
         organization: {
           select: {
             slackWebhookUrl: true,
@@ -152,6 +156,28 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    // Determine who the note should be assigned to
+    let noteCreatedBy = session.user.id;
+    
+    // If assignedUserId is provided, check if current user is admin
+    if (assignedUserId && assignedUserId !== session.user.id) {
+      if (!user.isAdmin) {
+        return NextResponse.json({ error: "Only admins can assign notes to other users" }, { status: 403 });
+      }
+      
+      // Verify the assigned user exists and is in the same organization
+      const assignedUser = await db.user.findUnique({
+        where: { id: assignedUserId },
+        select: { organizationId: true },
+      });
+      
+      if (!assignedUser || assignedUser.organizationId !== user.organizationId) {
+        return NextResponse.json({ error: "Invalid user assignment" }, { status: 400 });
+      }
+      
+      noteCreatedBy = assignedUserId;
+    }
+
     const randomColor = color || NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
 
     // Process checklist items
@@ -174,7 +200,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: {
         color: randomColor,
         boardId,
-        createdBy: session.user.id,
+        createdBy: noteCreatedBy,
         checklistItems:
           initialChecklistItems.length > 0
             ? {

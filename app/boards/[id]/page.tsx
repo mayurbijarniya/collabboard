@@ -21,6 +21,7 @@ import Link from "next/link";
 import { BetaBadge } from "@/components/ui/beta-badge";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { Note as NoteCard } from "@/components/note";
+import { UserSelector } from "@/components/user-selector";
 
 import {
   AlertDialog,
@@ -101,6 +102,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   });
   const [copiedPublicUrl, setCopiedPublicUrl] = useState(false);
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(false);
+  const [addNoteDialog, setAddNoteDialog] = useState(false);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
   const boardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -317,7 +320,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
   };
 
-  const handleAddNote = async (targetBoardId?: string) => {
+  const handleAddNote = async (targetBoardId?: string, assignedUserId?: string) => {
     // For all notes view, ensure a board is selected
     if (boardId === "all-notes" && !targetBoardId) {
       setErrorDialog({
@@ -342,6 +345,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           body: JSON.stringify({
             checklistItems: [],
             ...(isAllNotesView && { boardId: targetBoardId }),
+            ...(assignedUserId && { assignedUserId }),
           }),
         }
       );
@@ -868,10 +872,16 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
             )}
             <Button
               onClick={() => {
-                if (boardId === "all-notes" && allBoards.length > 0) {
-                  handleAddNote(allBoards[0].id);
+                if (user?.isAdmin) {
+                  setSelectedAssigneeId(user.id); // Default to current user
+                  setAddNoteDialog(true);
                 } else {
-                  handleAddNote();
+                  // Non-admin users create notes directly assigned to themselves
+                  if (boardId === "all-notes" && allBoards.length > 0) {
+                    handleAddNote(allBoards[0].id);
+                  } else {
+                    handleAddNote();
+                  }
                 }
               }}
               disabled={boardId === "archive"}
@@ -1241,6 +1251,57 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Note Dialog (Admin Only) */}
+      <Dialog open={addNoteDialog} onOpenChange={setAddNoteDialog}>
+        <DialogContent className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-foreground dark:text-zinc-100">
+              Add New Note
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground dark:text-zinc-400">
+              As an admin, you can assign this note to any team member.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground dark:text-zinc-100 mb-2 block">
+                Assign to:
+              </label>
+              <UserSelector
+                selectedUserId={selectedAssigneeId}
+                onUserSelect={setSelectedAssigneeId}
+                placeholder="Select team member..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddNoteDialog(false)}
+              className="bg-white dark:bg-zinc-900 text-foreground dark:text-zinc-100 border border-gray-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (boardId === "all-notes" && allBoards.length > 0) {
+                  handleAddNote(allBoards[0].id, selectedAssigneeId);
+                } else {
+                  handleAddNote(undefined, selectedAssigneeId);
+                }
+                setAddNoteDialog(false);
+              }}
+              disabled={!selectedAssigneeId}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Create Note
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

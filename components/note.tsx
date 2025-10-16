@@ -12,8 +12,10 @@ import {
 } from "@/components/checklist-item";
 import { DraggableRoot, DraggableContainer, DraggableItem } from "@/components/ui/draggable";
 import { cn } from "@/lib/utils";
-import { Trash2, Archive, ArchiveRestore, Copy } from "lucide-react";
+import { Trash2, Archive, ArchiveRestore, Copy, UserCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { UserSelector } from "./user-selector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 
 // Core domain types
 export interface User {
@@ -87,6 +89,8 @@ export function Note({
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editingItemContent, setEditingItemContent] = useState("");
   const [newItemContent, setNewItemContent] = useState("");
+  const [showReassignDialog, setShowReassignDialog] = useState(false);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
 
   const canEdit = !readonly && (currentUser?.id === note.user.id || currentUser?.isAdmin);
 
@@ -331,6 +335,30 @@ export function Note({
     }
   };
 
+  const handleReassignNote = async (newUserId: string) => {
+    try {
+      const response = await fetch(`/api/notes/${note.id}/assign`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: newUserId,
+        }),
+      });
+
+      if (response.ok) {
+        const { note: updatedNote } = await response.json();
+        onUpdate?.(updatedNote);
+        setShowReassignDialog(false);
+      } else {
+        console.error("Failed to reassign note");
+      }
+    } catch (error) {
+      console.error("Error reassigning note:", error);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -401,6 +429,28 @@ export function Note({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Copy note</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {currentUser?.isAdmin && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    aria-label={`Reassign Note ${note.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAssigneeId(note.user.id);
+                      setShowReassignDialog(true);
+                    }}
+                    className="p-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white/20 rounded"
+                    variant="ghost"
+                    size="icon"
+                  >
+                    <UserCheck className="w-3 h-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Reassign note</p>
                 </TooltipContent>
               </Tooltip>
             )}
@@ -535,6 +585,47 @@ export function Note({
           </DraggableRoot>
         </div>
       </div>
+
+      {/* Reassign Dialog (Admin Only) */}
+      <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
+        <DialogContent className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-foreground dark:text-zinc-100">
+              Reassign Note
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground dark:text-zinc-100 mb-2 block">
+                Assign to:
+              </label>
+              <UserSelector
+                selectedUserId={selectedAssigneeId}
+                onUserSelect={setSelectedAssigneeId}
+                placeholder="Select team member..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowReassignDialog(false)}
+              className="bg-white dark:bg-zinc-900 text-foreground dark:text-zinc-100 border border-gray-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleReassignNote(selectedAssigneeId)}
+              disabled={!selectedAssigneeId || selectedAssigneeId === note.user.id}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Reassign Note
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
