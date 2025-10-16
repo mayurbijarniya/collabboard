@@ -353,7 +353,7 @@ export function StickyNotesDemo() {
   return (
     <div className="relative">
       <div className="mb-4 flex items-center justify-end">
-        <Button size="sm" onClick={handleAddNote}>
+        <Button size="sm" onClick={handleAddNote} className="bg-blue-600 hover:bg-blue-700 text-white">
           <Plus className="mr-2 h-4 w-4" />
           Add Note
         </Button>

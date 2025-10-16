@@ -336,7 +336,7 @@ export function Note({
       className={cn(
         "relative select-none group transition-shadow duration-200 flex flex-col dark:border-gray-600 dark:bg-zinc-900 box-border border rounded-lg",
         // Focus highlight when any child is focused/being typed into
-        "focus-within:ring-2 focus-within:ring-sky-500 dark:focus-within:ring-sky-400 focus-within:ring-offset-1 focus-within:ring-offset-white dark:focus-within:ring-offset-zinc-900",
+        "focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400 focus-within:ring-offset-1 focus-within:ring-offset-white dark:focus-within:ring-offset-zinc-900",
         // Light theme variant
         "shadow-[-5px_14px_20px_-12px_rgba(0,0,0,0.18),_5px_14px_20px_-12px_rgba(0,0,0,0.18),_0_24px_40px_-22px_rgba(0,0,0,0.12)]",
         // Dark theme variant
