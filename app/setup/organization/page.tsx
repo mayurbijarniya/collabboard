@@ -7,6 +7,7 @@ import OrganizationSetupForm from "./form";
 import { env } from "@/lib/env";
 import { headers } from "next/headers";
 import { getBaseUrl } from "@/lib/utils";
+import { createInvitationEmailHTML } from "@/lib/custom-resend-provider";
 
 const resend = new Resend(env.AUTH_RESEND_KEY);
 
@@ -52,20 +53,11 @@ async function createOrganization(orgName: string, teamEmails: string[]) {
           from: env.EMAIL_FROM!,
           to: email,
           subject: `${session.user.name} invited you to join ${orgName}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>You&apos;re invited to join ${orgName}!</h2>
-              <p>${session.user.name} (${session.user.email}) has invited you to join their organization on CollabBoard.</p>
-              <p>Click the link below to accept the invitation:</p>
-              <a href="${baseUrl}/invite/accept?token=${invite.id}"
-                 style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Accept Invitation
-              </a>
-              <p style="margin-top: 20px; color: #666;">
-                If you don&apos;t want to receive these emails, please ignore this message.
-              </p>
-            </div>
-          `,
+          html: createInvitationEmailHTML(
+            session.user.name || 'Someone',
+            orgName,
+            `${baseUrl}/invite/accept?token=${invite.id}`
+          ),
         });
       } catch (error) {
         console.error(`Failed to send invite to ${email}:`, error);
