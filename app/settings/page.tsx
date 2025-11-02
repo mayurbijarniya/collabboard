@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Trash2, AlertTriangle } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { type NoteColor } from "@/lib/constants";
 
 import {
   AlertDialog,
@@ -27,11 +29,31 @@ export default function ProfileSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [preferredColor, setPreferredColor] = useState<NoteColor | null>(null);
+  const [savingColor, setSavingColor] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     if (user) {
       setProfileName(user.name || "");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchColorPreference = async () => {
+      try {
+        const response = await fetch("/api/user/color-preference");
+        if (response.ok) {
+          const data = await response.json();
+          setPreferredColor(data.userPreference);
+        }
+      } catch (error) {
+        console.error("Error fetching color preference:", error);
+      }
+    };
+
+    if (user) {
+      fetchColorPreference();
     }
   }, [user]);
 
@@ -78,6 +100,27 @@ export default function ProfileSettingsPage() {
       console.error("Error updating profile:", error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleColorChange = async (color: NoteColor) => {
+    setSavingColor(true);
+    try {
+      const response = await fetch("/api/user/color-preference", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ color }),
+      });
+
+      if (response.ok) {
+        setPreferredColor(color);
+      }
+    } catch (error) {
+      console.error("Error updating color preference:", error);
+    } finally {
+      setSavingColor(false);
     }
   };
 
@@ -146,6 +189,41 @@ export default function ProfileSettingsPage() {
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
+
+        {/* Color Preference Section */}
+        <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground dark:text-zinc-100 mb-2">
+              Note Color Preference
+            </h3>
+            <p className="text-muted-foreground dark:text-zinc-400 mb-4">
+              Choose your preferred color for new notes. If not set, random colors will be used.
+            </p>
+            <div className="flex items-center gap-3">
+              <Label htmlFor="color-picker" className="text-foreground dark:text-zinc-200">
+                Preferred Color:
+              </Label>
+              <ColorPicker
+                selectedColor={preferredColor || undefined}
+                onColorSelect={handleColorChange}
+                disabled={savingColor}
+              />
+              {preferredColor && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleColorChange(null as any)}
+                  disabled={savingColor}
+                  className="text-sm"
+                >
+                  Clear
+                </Button>
+              )}
+              {savingColor && <span className="text-sm text-muted-foreground">Saving...</span>}
+            </div>
+          </div>
+        </div>
+
         <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
           <div className="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/60 dark:bg-red-950/30 p-4">
             <div className="flex items-start gap-3">
