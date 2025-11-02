@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { Trash2, Archive, ArchiveRestore, Copy, UserCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { UserSelector } from "./user-selector";
+import { ColorPicker } from "./ui/color-picker";
+import { type NoteColor } from "@/lib/constants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 
 // Core domain types
@@ -66,6 +68,7 @@ interface NoteProps {
   onArchive?: (noteId: string) => void;
   onUnarchive?: (noteId: string) => void;
   onCopy?: (note: Note) => void;
+  onColorChange?: (noteId: string, color: NoteColor) => void;
   readonly?: boolean;
   showBoardName?: boolean;
   className?: string;
@@ -80,6 +83,7 @@ export function Note({
   onArchive,
   onUnarchive,
   onCopy,
+  onColorChange,
   readonly = false,
   showBoardName = false,
   className,
@@ -411,6 +415,21 @@ export function Note({
         </div>
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            {canEdit && !note.archivedAt && onColorChange && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <ColorPicker
+                      selectedColor={note.color as NoteColor}
+                      onColorSelect={(color) => onColorChange(note.id, color)}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Change note color</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             {canEdit && !note.archivedAt && (
               <Tooltip>
                 <TooltipTrigger asChild>
