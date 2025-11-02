@@ -124,9 +124,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       select: {
         organizationId: true,
         isAdmin: true,
+        preferredNoteColor: true,
         organization: {
           select: {
             slackWebhookUrl: true,
+            defaultNoteColor: true,
           },
         },
         name: true,
@@ -178,7 +180,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       noteCreatedBy = assignedUserId;
     }
 
-    const randomColor = color || NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
+    // Determine note color priority: provided color > user preference > org default > random
+    const randomColor = color || 
+      user.preferredNoteColor || 
+      user.organization?.defaultNoteColor || 
+      NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
 
     // Process checklist items
     const initialChecklistItems: Array<{
