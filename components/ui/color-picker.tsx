@@ -24,13 +24,13 @@ export function ColorPicker({ selectedColor, onColorSelect, disabled }: ColorPic
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="icon"
           disabled={disabled}
-          className="h-8 w-8 p-0 border-2"
-          style={{ backgroundColor: selectedColor }}
+          className="p-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white/20 rounded"
+          aria-label="Change note color"
         >
-          <Palette className="h-4 w-4" />
+          <Palette className="w-3 h-3" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-48 p-3" align="start">
