@@ -70,6 +70,7 @@ model Organization {
   id        String   @id @default(cuid())
   name      String
   slackWebhookUrl String?
+  defaultNoteColor String? // Admin-set default note color for organization
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   members   User[]
