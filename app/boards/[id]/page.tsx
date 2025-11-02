@@ -566,6 +566,50 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     });
   };
 
+  const handleColorChange = async (noteId: string, color: string) => {
+    const currentNote = notes.find((n) => n.id === noteId);
+    if (!currentNote) return;
+
+    const targetBoardId = currentNote.board?.id ?? currentNote.boardId;
+    if (!targetBoardId) return;
+
+    // Optimistic update
+    setNotes((prev) => 
+      prev.map((n) => 
+        n.id === noteId ? { ...n, color } : n
+      )
+    );
+
+    try {
+      const response = await fetch(`/api/boards/${targetBoardId}/notes/${noteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ color }),
+      });
+
+      if (!response.ok) {
+        // Revert on failure
+        setNotes((prev) => 
+          prev.map((n) => 
+            n.id === noteId ? { ...n, color: currentNote.color } : n
+          )
+        );
+        toast.error("Failed to update note color");
+      } else {
+        toast.success("Note color updated");
+      }
+    } catch (error) {
+      console.error("Error updating note color:", error);
+      // Revert on failure
+      setNotes((prev) => 
+        prev.map((n) => 
+          n.id === noteId ? { ...n, color: currentNote.color } : n
+        )
+      );
+      toast.error("Failed to update note color");
+    }
+  };
+
   const handleAddBoard = async (values: z.infer<typeof formSchema>) => {
     const { name, description } = values;
     try {
@@ -917,6 +961,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                   onArchive={boardId !== "archive" ? handleArchiveNote : undefined}
                   onUnarchive={boardId === "archive" ? handleUnarchiveNote : undefined}
                   onCopy={handleCopyNote}
+                  onColorChange={handleColorChange}
                   showBoardName={boardId === "all-notes" || boardId === "archive"}
                   className="shadow-md shadow-black/10 p-4"
                   style={{
