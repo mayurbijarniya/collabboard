@@ -654,15 +654,22 @@ export default function OrganizationSettingsPage() {
                 disabled={savingOrgColor}
               />
               {orgDefaultColor && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleOrgColorChange(null as any)}
-                  disabled={savingOrgColor}
-                  className="text-sm"
-                >
-                  Clear
-                </Button>
+                <>
+                  <div
+                    className="w-6 h-6 rounded border-2 border-gray-300 dark:border-gray-600"
+                    style={{ backgroundColor: orgDefaultColor }}
+                    title={`Selected color: ${orgDefaultColor}`}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOrgColorChange(null as any)}
+                    disabled={savingOrgColor}
+                    className="text-sm"
+                  >
+                    Clear
+                  </Button>
+                </>
               )}
               {savingOrgColor && <span className="text-sm text-zinc-600 dark:text-zinc-400">Saving...</span>}
             </div>
