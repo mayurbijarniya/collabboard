@@ -209,15 +209,22 @@ export default function ProfileSettingsPage() {
                 disabled={savingColor}
               />
               {preferredColor && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleColorChange(null as any)}
-                  disabled={savingColor}
-                  className="text-sm"
-                >
-                  Clear
-                </Button>
+                <>
+                  <div
+                    className="w-6 h-6 rounded border-2 border-gray-300 dark:border-gray-600"
+                    style={{ backgroundColor: preferredColor }}
+                    title={`Selected color: ${preferredColor}`}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleColorChange(null as any)}
+                    disabled={savingColor}
+                    className="text-sm"
+                  >
+                    Clear
+                  </Button>
+                </>
               )}
               {savingColor && <span className="text-sm text-muted-foreground">Saving...</span>}
             </div>
