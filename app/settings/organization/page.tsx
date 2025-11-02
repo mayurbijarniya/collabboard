@@ -40,6 +40,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import { SLACK_WEBHOOK_REGEX } from "@/lib/constants";
 import { toast } from "sonner";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { type NoteColor } from "@/lib/constants";
 
 interface OrganizationInvite {
   id: string;
@@ -101,6 +103,8 @@ export default function OrganizationSettingsPage() {
   }>({ open: false, title: "", description: "", variant: "error" });
   const [creating, setCreating] = useState(false);
   const [copiedInviteToken, setCopiedInviteToken] = useState<string | null>(null);
+  const [orgDefaultColor, setOrgDefaultColor] = useState<NoteColor | null>(null);
+  const [savingOrgColor, setSavingOrgColor] = useState(false);
 
   useEffect(() => {
     if (user?.organization) {
@@ -112,6 +116,24 @@ export default function OrganizationSettingsPage() {
       setOriginalSlackWebhookUrl(slackWebhookValue);
     }
   }, [user?.organization?.name, user?.organization?.slackWebhookUrl]);
+
+  useEffect(() => {
+    const fetchOrgColorPreference = async () => {
+      try {
+        const response = await fetch("/api/organization/color-preference");
+        if (response.ok) {
+          const data = await response.json();
+          setOrgDefaultColor(data.defaultNoteColor);
+        }
+      } catch (error) {
+        console.error("Error fetching organization color preference:", error);
+      }
+    };
+
+    if (user?.isAdmin) {
+      fetchOrgColorPreference();
+    }
+  }, [user?.isAdmin]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -356,6 +378,31 @@ export default function OrganizationSettingsPage() {
     }
   };
 
+  const handleOrgColorChange = async (color: NoteColor) => {
+    setSavingOrgColor(true);
+    try {
+      const response = await fetch("/api/organization/color-preference", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ color }),
+      });
+
+      if (response.ok) {
+        setOrgDefaultColor(color);
+        toast.success("Organization default color updated");
+      } else {
+        toast.error("Failed to update organization color");
+      }
+    } catch (error) {
+      console.error("Error updating organization color preference:", error);
+      toast.error("Failed to update organization color");
+    } finally {
+      setSavingOrgColor(false);
+    }
+  };
+
   const handleCreateSelfServeInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSelfServeInvite.name.trim()) return;
@@ -584,6 +631,44 @@ export default function OrganizationSettingsPage() {
           </div>
         </div>
       </Card>
+
+      {/* Organization Default Note Color */}
+      {user?.isAdmin && (
+        <Card className="p-4 lg:p-6 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800">
+          <div className="space-y-3 lg:space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Default Note Color
+              </h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                Set a default color for new notes in your organization. Members can still override this with their personal preference.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label htmlFor="org-color-picker" className="text-zinc-800 dark:text-zinc-200">
+                Default Color:
+              </Label>
+              <ColorPicker
+                selectedColor={orgDefaultColor || undefined}
+                onColorSelect={handleOrgColorChange}
+                disabled={savingOrgColor}
+              />
+              {orgDefaultColor && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOrgColorChange(null as any)}
+                  disabled={savingOrgColor}
+                  className="text-sm"
+                >
+                  Clear
+                </Button>
+              )}
+              {savingOrgColor && <span className="text-sm text-zinc-600 dark:text-zinc-400">Saving...</span>}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Team Members */}
       <Card className="p-4 lg:p-6 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800">
