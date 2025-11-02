@@ -378,7 +378,7 @@ export default function OrganizationSettingsPage() {
     }
   };
 
-  const handleOrgColorChange = async (color: NoteColor) => {
+  const handleOrgColorChange = async (color: NoteColor | null) => {
     setSavingOrgColor(true);
     try {
       const response = await fetch("/api/organization/color-preference", {
@@ -663,7 +663,7 @@ export default function OrganizationSettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleOrgColorChange(null as any)}
+                    onClick={() => handleOrgColorChange(null)}
                     disabled={savingOrgColor}
                     className="text-sm"
                   >

@@ -103,7 +103,7 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const handleColorChange = async (color: NoteColor) => {
+  const handleColorChange = async (color: NoteColor | null) => {
     setSavingColor(true);
     try {
       const response = await fetch("/api/user/color-preference", {
@@ -218,7 +218,7 @@ export default function ProfileSettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleColorChange(null as any)}
+                    onClick={() => handleColorChange(null)}
                     disabled={savingColor}
                     className="text-sm"
                   >
