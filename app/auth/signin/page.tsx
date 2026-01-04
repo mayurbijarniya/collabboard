@@ -15,10 +15,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, ArrowRight, Loader2, ExternalLink } from "lucide-react";
+import { Mail, ArrowRight, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
 import { BetaBadge } from "@/components/ui/beta-badge";
 import { isValidEmail } from "@/lib/utils";
 import Image from "next/image";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 const emailProviders = [
   {
@@ -82,6 +90,8 @@ function SignInContent() {
   const [isResending, setIsResending] = useState(false);
   const [isResent, setIsResent] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [showGmailWarning, setShowGmailWarning] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -118,10 +128,22 @@ function SignInContent() {
     return () => clearTimeout(timeoutId);
   }, [email]);
 
+  // Check if email is Gmail
+  const isGmailEmail = (email: string) => {
+    return email.toLowerCase().endsWith("@gmail.com");
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isValidEmail(email)) {
       setEmailError(email ? "Please enter a valid email address" : "Email address is required");
+      return;
+    }
+
+    // Check if non-Gmail email
+    if (!isGmailEmail(email)) {
+      setPendingEmail(email);
+      setShowGmailWarning(true);
       return;
     }
 
@@ -324,6 +346,37 @@ function SignInContent() {
             </div>
           </CardFooter>
         </form>
+
+        {/* Gmail Warning Dialog */}
+        <AlertDialog open={showGmailWarning} onOpenChange={(open) => {
+          setShowGmailWarning(open);
+          if (!open) {
+            setPendingEmail("");
+            setEmail("");
+          }
+        }}>
+          <AlertDialogContent className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
+            <AlertDialogHeader className="text-center sm:text-left">
+              <div className="mx-auto sm:mx-0 w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <AlertDialogTitle className="text-lg sm:text-xl font-semibold text-foreground dark:text-zinc-100">
+                Gmail Address Required
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-muted-foreground dark:text-zinc-400 mt-2">
+                You&apos;re using a <strong className="text-foreground dark:text-zinc-200">{pendingEmail}</strong> email address.
+                Currently, we can only send magic links to <strong className="text-foreground dark:text-zinc-200">Gmail</strong> addresses.
+                <br /><br />
+                Please use a Gmail address to sign in, or continue with Google/GitHub OAuth for other email providers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="mt-4">
+              <AlertDialogCancel className="w-full bg-amber-600 hover:bg-amber-700 text-white border-amber-600 hover:border-amber-700">
+                Use Gmail Address
+              </AlertDialogCancel>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </Card>
     </div>
   );
