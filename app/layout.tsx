@@ -18,9 +18,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CollabBoard",
   description: "Keep on top of your team's to-dos",
+  manifest: "/logo/site.webmanifest",
   icons: {
-    icon: "/logo/collabboard.svg",
+    icon: "/logo/favicon.ico",
+    shortcut: "/logo/favicon-96x96.png",
+    apple: "/logo/apple-touch-icon.png",
   },
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({

@@ -238,7 +238,6 @@ const authors = [
   { name: "Ryan", initial: "R" },
   { name: "Saarthak", initial: "S" },
   { name: "Sagi", initial: "S" },
-  { name: "Mayur", initial: "M" },
   { name: "Sam", initial: "S" },
   { name: "Sankalp", initial: "S" },
   { name: "Sashank", initial: "S" },
@@ -390,6 +389,14 @@ export function StickyNotesDemo() {
             ))}
           </AnimatePresence>
         </motion.div>
+      </div>
+      <div className="mt-4 text-center">
+        <a
+          href="/public/boards/demo"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-1"
+        >
+          View a public demo board <span aria-hidden="true">&rarr;</span>
+        </a>
       </div>
     </div>
   );

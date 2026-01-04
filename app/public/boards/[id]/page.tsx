@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { BetaBadge } from "@/components/ui/beta-badge";
 import { FullPageLoader } from "@/components/ui/loader";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import type { Note, Board } from "@/components/note";
@@ -119,25 +118,23 @@ export default function PublicBoardPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="min-h-screen max-w-screen bg-background dark:bg-zinc-950">
-      <div className="bg-card dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-3">
-            <Link href="/" className="flex-shrink-0 pl-4 sm:pl-2 lg:pl-4">
-              <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+    <div className="min-h-screen max-w-screen bg-zinc-100 dark:bg-zinc-800 bg-dots">
+      <div>
+        <div className="mx-0.5 md:mx-5 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-center h-auto md:h-16 p-2 md:p-0">
+          {/* Left: Logo + Board Name */}
+          <div className="bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 rounded-lg dark:border-zinc-800 mt-2 py-2 px-3 md:w-fit grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] md:grid-cols-[auto_auto_1fr_auto_auto] gap-2 items-center auto-rows-auto grid-flow-dense">
+            <Link href="/" className="flex-shrink-0 pl-1 w-fit">
+              <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
                 CollabBoard
-                <BetaBadge />
               </h1>
             </Link>
+            <div className="h-6 w-px m-1.5 bg-zinc-100 dark:bg-zinc-700 hidden md:block" />
 
-            <div className="flex items-center space-x-2">
-              <div className="text-sm font-semibold text-foreground dark:text-zinc-100">
-                {board.name}
-              </div>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Public
-              </span>
+            <div className="text-sm font-semibold text-foreground dark:text-zinc-100 truncate">
+              {board.name}
             </div>
+
+            <div className="h-6 w-px m-1.5 bg-zinc-100 dark:bg-zinc-700 hidden sm:block" />
 
             <div className="hidden md:block">
               <FilterPopover
@@ -151,25 +148,28 @@ export default function PublicBoardPage({ params }: { params: Promise<{ id: stri
                 onAuthorChange={(authorId) => {
                   setSelectedAuthor(authorId);
                 }}
-                className="min-w-fit"
+                className="h-9"
               />
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 px-3">
-            <div className="relative hidden sm:block">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-muted-foreground dark:text-zinc-400" />
+          {/* Right: Search + Sign in */}
+          <div className="bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 rounded-lg dark:border-zinc-800 mt-2 py-2 px-3 grid grid-cols-[1fr_auto] gap-2 items-center auto-rows-auto grid-flow-dense">
+            {notes.length > 0 && (
+              <div className="relative h-9 col-span-3 md:col-span-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-muted-foreground dark:text-zinc-400" />
+                </div>
+                <input
+                  aria-label="Search notes"
+                  type="text"
+                  placeholder="Search notes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-8 py-2 border border-zinc-100 dark:border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-600 focus:border-transparent text-sm bg-background dark:bg-zinc-900 text-foreground dark:text-zinc-100 placeholder:text-muted-foreground dark:placeholder:text-zinc-400"
+                />
               </div>
-              <input
-                aria-label="Search notes"
-                type="text"
-                placeholder="Search notes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 pl-10 pr-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-zinc-600 focus:border-transparent text-sm bg-background dark:bg-zinc-900 text-foreground dark:text-zinc-100 placeholder:text-muted-foreground dark:placeholder:text-zinc-400"
-              />
-            </div>
+            )}
 
             {user ? (
               <ProfileDropdown user={user} />
@@ -184,8 +184,12 @@ export default function PublicBoardPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      <div ref={boardRef} className="relative min-h-[calc(100vh-65px)] p-3 md:p-5 w-full">
-        <div className={`flex gap-${columnMeta.gap}`}>
+      {/* Board Area */}
+      <div
+        ref={boardRef}
+        className="relative w-full min-h-[calc(100vh-236px)] sm:min-h-[calc(100vh-64px)] p-3 md:p-5"
+      >
+        <div className={`flex ${columnMeta.gap === 0 ? 'gap-0' : columnMeta.gap === 2 ? 'gap-2' : columnMeta.gap === 4 ? 'gap-4' : 'gap-6'}`}>
           {columnsData.map((column, index) => (
             <div key={index} className="flex-1 flex flex-col gap-4">
               {column.map((note) => (

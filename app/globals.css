@@ -1,25 +1,23 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-html.dark {
-  background-color: #09090b;
-}
-
-/* Dotted background utility */
-.bg-dots {
-  --dots-color: rgba(0, 0, 0, 0.06);
+@utility bg-dots {
+  --dots-color: #0000000f;
   --dots-size: 1.5px;
   --dots-space: 20px;
-  background-image: radial-gradient(
-    var(--dots-color) var(--dots-size),
-    transparent var(--dots-size)
-  );
+  background-image: radial-gradient(var(--dots-color) var(--dots-size), transparent var(--dots-size));
   background-size: var(--dots-space) var(--dots-space);
 }
 
 .dark .bg-dots {
-  --dots-color: rgba(255, 255, 255, 0.08);
+  --dots-color: #ffffff14;
 }
+
+html.dark {
+  background-color: #09090b;
+}
+
+
 
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
