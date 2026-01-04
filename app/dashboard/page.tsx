@@ -7,7 +7,6 @@ import z from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
-import { BetaBadge } from "@/components/ui/beta-badge";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
@@ -186,7 +185,6 @@ export default function Dashboard() {
             <div className="flex-shrink-0">
               <h1 className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 CollabBoard
-                <BetaBadge />
               </h1>
             </div>
           </div>

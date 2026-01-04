@@ -18,7 +18,6 @@ import {
   Plus,
 } from "lucide-react";
 import Link from "next/link";
-import { BetaBadge } from "@/components/ui/beta-badge";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { Note as NoteCard } from "@/components/note";
 import { UserSelector } from "@/components/user-selector";
@@ -741,7 +740,6 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
             <Link href="/dashboard" className="flex-shrink-0 pl-1 w-fit">
               <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
                 CollabBoard
-                <BetaBadge />
               </h1>
             </Link>
             <div className="h-6 w-px m-1.5 bg-zinc-100 dark:bg-zinc-700 hidden md:block" />

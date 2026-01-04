@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, ArrowRight, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
-import { BetaBadge } from "@/components/ui/beta-badge";
 import { isValidEmail } from "@/lib/utils";
 import Image from "next/image";
 import {
@@ -255,9 +254,8 @@ function SignInContent() {
               <Image src="/logo/collabboard.svg" alt="CollabBoard Logo" width={48} height={48} />
             </div>
           </Link>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground dark:text-zinc-100 flex items-center gap-2 justify-center">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground dark:text-zinc-100">
             Welcome to CollabBoard
-            <BetaBadge />
           </CardTitle>
           <CardDescription className="text-muted-foreground dark:text-zinc-400">
             {searchParams.get("email")

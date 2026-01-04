@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { User as UserIcon, Building2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { BetaBadge } from "@/components/ui/beta-badge";
 import { ProfileDropdown } from "@/components/profile-dropdown";
 import { useUser } from "@/app/contexts/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +25,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           <div className="flex items-center space-x-4 sm:space-x-6">
             <Link href="/dashboard" className="flex-shrink-0">
               <h1 className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                CollabBoard <BetaBadge />
+                CollabBoard
               </h1>
             </Link>
           </div>
