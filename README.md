@@ -65,7 +65,7 @@ When changing the database schema in `prisma/schema.prisma`, create and check in
 npm run db:migrate
 ```
 
-## 🔐 Google OAuth Setup
+## Google OAuth Setup
 
 To enable login with Google, follow these steps:
 
@@ -91,7 +91,7 @@ GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-## 🔐 GitHub OAuth Setup
+## GitHub OAuth Setup
 
 To enable login with GitHub, follow these steps:
 
