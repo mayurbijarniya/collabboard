@@ -32,10 +32,6 @@ const emailProviders = [
     name: "Gmail",
     url: "https://mail.google.com",
   },
-  {
-    name: "Outlook",
-    url: "https://outlook.live.com",
-  },
 ];
 
 const oauthProviders = [
@@ -186,7 +182,16 @@ function SignInContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-slate-50 dark:from-zinc-950 dark:to-zinc-900 p-4 sm:p-6">
         <Card className="w-full max-w-sm sm:max-w-md bg-white/95 dark:bg-zinc-900/95 border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="text-center">
+          <CardHeader className="text-center relative">
+            <div className="flex justify-start absolute top-4 left-4">
+              <Link
+                href="/"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Link>
+            </div>
             <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mb-4 ring-1 ring-green-200/60 dark:ring-green-800/40">
               <Mail className="w-6 h-6 text-green-700 dark:text-green-400" />
             </div>
