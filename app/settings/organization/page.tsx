@@ -702,7 +702,7 @@ export default function OrganizationSettingsPage() {
                     <AvatarImage src={member.image || ""} alt={member.name || member.email} />
                     <AvatarFallback
                       className={
-                        member.isAdmin ? "bg-purple-500" : "bg-blue-500 dark:bg-zinc-700 text-white"
+                        member.isAdmin ? "bg-green-500" : "bg-blue-500 dark:bg-zinc-700 text-white"
                       }
                     >
                       {member.name
@@ -716,7 +716,7 @@ export default function OrganizationSettingsPage() {
                         {member.name || "Unnamed User"}
                       </p>
                       {member.isAdmin && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                           <ShieldCheck className="w-3 h-3 mr-1" />
                           Admin
                         </span>
@@ -734,8 +734,8 @@ export default function OrganizationSettingsPage() {
                       size="sm"
                       className={`${
                         member.isAdmin
-                          ? "text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900"
-                          : "text-zinc-500 dark:text-zinc-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:text-purple-300 dark:hover:bg-purple-900"
+                          ? "text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900"
+                          : "text-zinc-500 dark:text-zinc-400 hover:text-green-600 hover:bg-green-50 dark:hover:text-green-300 dark:hover:bg-green-900"
                       }`}
                       title={member.isAdmin ? "Remove admin role" : "Make admin"}
                     >
