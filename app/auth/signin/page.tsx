@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, ArrowRight, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
+import { Mail, ArrowRight, Loader2, ExternalLink, AlertTriangle, ArrowLeft } from "lucide-react";
 import { isValidEmail } from "@/lib/utils";
 import Image from "next/image";
 import {
@@ -249,12 +249,21 @@ function SignInContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-slate-50 dark:from-zinc-950 dark:to-zinc-900 p-4 sm:p-6">
       <Card className="w-full bg-white max-w-sm sm:max-w-md dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="text-center">
+          <div className="flex justify-start mb-2">
+            <Link
+              href="/"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to home
+            </Link>
+          </div>
           <Link href="https://collabboard.mayur.app" passHref>
             <div className="mx-auto w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center mb-4 ring-1 ring-blue-200/60 dark:ring-blue-800/40">
               <Image src="/logo/collabboard.svg" alt="CollabBoard Logo" width={48} height={48} />
             </div>
           </Link>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground dark:text-zinc-100">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground dark:text-zinc-100 flex items-center gap-2 justify-center">
             Welcome to CollabBoard
           </CardTitle>
           <CardDescription className="text-muted-foreground dark:text-zinc-400">
