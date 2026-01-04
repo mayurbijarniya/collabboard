@@ -4,7 +4,7 @@ import { env } from "./env";
 
 const resend = new Resend(env.AUTH_RESEND_KEY);
 
-// Clean light blue email template
+// CollabBoard branded email template
 const createEmailTemplate = (title: string, message: string, buttonText: string, buttonUrl: string) => `
 <!DOCTYPE html>
 <html>
@@ -13,50 +13,74 @@ const createEmailTemplate = (title: string, message: string, buttonText: string,
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #e3f2fd;">
-  <div style="max-width: 500px; margin: 40px auto; background-color: #e3f2fd; border-radius: 12px; overflow: hidden;">
-    
-    <!-- Content -->
-    <div style="padding: 40px 32px; text-align: center;">
-      <h1 style="color: #002984; font-size: 28px; font-weight: 600; margin: 0 0 8px 0; letter-spacing: -0.025em;">CollabBoard</h1>
-      
-      <h2 style="color: #1565c0; font-size: 20px; font-weight: 500; margin: 0 0 24px 0;">${title}</h2>
-      
-      <p style="color: #1976d2; font-size: 16px; margin: 0 0 32px 0; line-height: 1.5;">
-        ${message}
-      </p>
-      
-      <a href="${buttonUrl}" style="display: inline-block; background-color: #002984; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 500; margin-bottom: 32px;">
-        ${buttonText}
-      </a>
-      
-      <p style="color: #1976d2; font-size: 14px; margin: 0; line-height: 1.5; opacity: 0.8;">
-        If you didn't request this, you can safely ignore this email.
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <div style="max-width: 520px; margin: 40px auto;">
+    <!-- Logo Header -->
+    <div style="text-align: center; padding: 32px 0 24px;">
+      <span style="font-size: 24px; font-weight: 700; color: #2563eb;">CollabBoard</span>
+    </div>
+
+    <!-- Card -->
+    <div style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+      <!-- Header -->
+      <div style="background-color: #f1f5f9; padding: 32px 40px 24px; text-align: center;">
+        <h1 style="color: #0f172a; font-size: 24px; font-weight: 600; margin: 0 0 8px 0;">${title}</h1>
+      </div>
+
+      <!-- Content -->
+      <div style="padding: 32px 40px;">
+        <p style="color: #475569; font-size: 16px; margin: 0 0 28px 0; line-height: 1.6;">
+          ${message}
+        </p>
+
+        <!-- Button -->
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center">
+              <a href="${buttonUrl}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 500;">
+                ${buttonText}
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Divider -->
+        <div style="margin: 28px 0; border-top: 1px solid #e2e8f0;"></div>
+
+        <!-- Footer -->
+        <p style="color: #94a3b8; font-size: 13px; margin: 0; line-height: 1.5;">
+          This link will expire in 24 hours.<br>
+          If you didn't request this, you can safely ignore this email.
+        </p>
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div style="text-align: center; padding: 24px 0;">
+      <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+        &copy; 2025 CollabBoard. All rights reserved.
       </p>
     </div>
-    
   </div>
 </body>
 </html>
 `;
 
-// Clean and simple sign-in email template
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const createSignInEmailHTML = (url: string, identifier: string) => createEmailTemplate(
+// Sign-in email template
+const createSignInEmailHTML = (url: string, _identifier: string) => createEmailTemplate(
   "Sign in to your account",
   "Click the button below to securely sign in to CollabBoard.",
   "Sign in to CollabBoard",
   url
 );
 
-// Clean and simple invitation email template  
+// Invitation email template
 export const createInvitationEmailHTML = (inviterName: string, organizationName: string, invitationUrl: string) => createEmailTemplate(
-  `You're invited to join ${organizationName}!`,
-  `${inviterName} has invited you to join their organization on CollabBoard.`,
+  `You're invited to ${organizationName}`,
+  `${inviterName} has invited you to join their team on CollabBoard. Click the button below to accept the invitation.`,
   "Accept Invitation",
   invitationUrl
 );
-
 
 export function createCustomResendProvider(): EmailConfig {
   return {
@@ -64,7 +88,7 @@ export function createCustomResendProvider(): EmailConfig {
     type: "email",
     name: "Resend",
     from: env.EMAIL_FROM,
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 24 * 60 * 60,
     async sendVerificationRequest({ identifier: email, url }) {
       try {
         await resend.emails.send({
@@ -72,17 +96,9 @@ export function createCustomResendProvider(): EmailConfig {
           to: email,
           subject: "Sign in to CollabBoard",
           html: createSignInEmailHTML(url, email),
-          // attachments: [
-          //   {
-          //     path: "/Users/mayurbijarniya/Downloads/Code/collabboard/public/logo/collabboard.png",
-          //     filename: "collabboard-logo.png",
-          //     content: "collabboard-logo"
-          //   }
-          // ]
         });
       } catch (error) {
         console.error("Failed to send verification email:", error);
-        console.error("Error details:", JSON.stringify(error, null, 2));
         throw error;
       }
     },
