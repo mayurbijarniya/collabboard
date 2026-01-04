@@ -155,7 +155,7 @@ export default function HomePage() {
 
       <main className="pt-16 relative z-10">
         {/* --- Hero Section --- */}
-        <section className="w-full py-16 md:py-20">
+        <section className="w-full py-16 md:py-20 bg-slate-50/50 dark:bg-zinc-900/50">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
               {/* Hero Content */}
@@ -237,7 +237,7 @@ export default function HomePage() {
         </section>
 
         {/* --- Use Cases --- */}
-        <section id="use-cases" className="w-full py-16 scroll-mt-16">
+        <section id="use-cases" className="w-full py-16 scroll-mt-16 bg-slate-50/50 dark:bg-zinc-900/50">
           <div className="container mx-auto px-4 md:px-6">
             <FadeIn>
               <div className="text-center mb-12">
@@ -286,7 +286,7 @@ export default function HomePage() {
         </section>
 
         {/* --- Integrations --- */}
-        <section className="w-full py-16">
+        <section className="w-full py-16 bg-slate-50/50 dark:bg-zinc-900/50">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-center">
               <FadeIn>
