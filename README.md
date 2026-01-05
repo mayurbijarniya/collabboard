@@ -1,58 +1,68 @@
 # CollabBoard
 
-Keep on top of your team's to-dos.
+A real-time collaborative task management platform with sticky notes-style boards.
+
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)
+
+## Features
+
+- **Visual Boards** — Drag-and-drop sticky notes with checklists
+- **Team Collaboration** — Multi-user organizations with Admin/Member roles
+- **Activity Feed** — Real-time activity logging
+- **Authentication** — Email magic links, Google, and GitHub OAuth
+- **Public Boards** — Share read-only views with external stakeholders
+- **Slack Integration** — Webhook notifications for board updates
+- **Dark/Light Themes** — Multiple VS Code-inspired themes
+
+## Tech Stack
+
+**Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS 4, Radix UI, Framer Motion  
+**Backend:** Next.js API Routes, Prisma ORM, PostgreSQL  
+**Auth:** NextAuth.js v5  
+**Testing:** Playwright (E2E), Jest (Unit)
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Set up environment variables
 cp .env.example .env
-
-# Start database (Docker) or use your own PostgreSQL
 npm run docker:up
-
-# Push database schema
 npm run db:push
-
-# Start development server
 npm run dev
 ```
-
-Visit [http://localhost:3000](http://localhost:3000)
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run test` | Run unit tests |
-| `npm run test:e2e` | Run end-to-end tests |
-| `npm run docker:up` | Start PostgreSQL database |
-| `npm run docker:down` | Stop PostgreSQL database |
-| `npm run db:studio` | Open Prisma Studio |
 
 ## Environment Variables
 
 ```env
-DATABASE_URL="postgresql://..."
-AUTH_SECRET="your-secret"
-AUTH_RESEND_KEY="your-resend-key"
-EMAIL_FROM="noreply@..."
+DATABASE_URL="postgresql://user:password@localhost:5432/collabboard"
+AUTH_SECRET="your-secret-key"
+AUTH_RESEND_KEY="your-resend-api-key"
+EMAIL_FROM="noreply@yourdomain.com"
+
+# OAuth (optional)
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 GITHUB_CLIENT_ID=""
 GITHUB_CLIENT_SECRET=""
 ```
 
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run test` | Unit tests |
+| `npm run test:e2e` | E2E tests |
+| `npm run db:studio` | Prisma Studio |
+
+## Deployment
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mayurbijarniya/collabboard&env=DATABASE_URL,EMAIL_FROM,AUTH_RESEND_KEY,AUTH_SECRET)
 
 ## License
 
-MIT License
-
-Copyright (c) 2025 Mayur Bijarniya
+MIT License — Copyright (c) 2025 Mayur Bijarniya
