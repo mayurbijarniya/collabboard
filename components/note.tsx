@@ -98,9 +98,35 @@ export function Note({
 
   const canEdit = !readonly && (currentUser?.id === note.user.id || currentUser?.isAdmin);
 
+  // Helper to log activity
+  const logActivity = async (action: string, entityType: string, entityId: string, entityTitle?: string) => {
+    if (!syncDB) return;
+    try {
+      await fetch("/api/activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          entityType,
+          entityId,
+          entityTitle,
+          boardId: note.boardId,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+  };
+
+  // Get note owner's name for activity messages
+  const noteOwnerName = note.user.name || note.user.email.split("@")[0];
+
   const handleToggleChecklistItem = async (itemId: string) => {
     try {
       if (!note.checklistItems || !canEdit) return;
+
+      const item = note.checklistItems.find((i) => i.id === itemId);
+      const isNowChecked = !item?.checked;
 
       const updatedItems = note.checklistItems.map((item) =>
         item.id === itemId ? { ...item, checked: !item.checked } : item
@@ -132,6 +158,10 @@ export function Note({
             } else {
               const { note: updatedNote } = await response.json();
               onUpdate?.(updatedNote);
+              // Log activity with before/after state
+              const action = isNowChecked ? "task_completed" : "task_uncompleted";
+              const statusChange = isNowChecked ? "unchecked → checked" : "checked → unchecked";
+              logActivity(action, "checklist", itemId, `${item?.content} in ${noteOwnerName}'s note (${statusChange})`);
             }
           })
           .catch((error) => {
@@ -147,6 +177,7 @@ export function Note({
   const handleDeleteChecklistItem = async (itemId: string) => {
     try {
       if (!note.checklistItems) return;
+      const item = note.checklistItems.find((i) => i.id === itemId);
       const updatedItems = note.checklistItems.filter((item) => item.id !== itemId);
 
       const optimisticNote = {
@@ -170,6 +201,8 @@ export function Note({
         if (response.ok) {
           const { note: updatedNote } = await response.json();
           onUpdate?.(updatedNote);
+          // Log activity
+          logActivity("task_deleted", "checklist", itemId, `${item?.content} from ${noteOwnerName}'s note`);
         } else {
           onUpdate?.(note);
         }
@@ -183,6 +216,8 @@ export function Note({
     try {
       if (!note.checklistItems) return;
 
+      const oldItem = note.checklistItems.find((item) => item.id === itemId);
+      const oldContent = oldItem?.content || "";
       const updatedItems = note.checklistItems.map((item) =>
         item.id === itemId ? { ...item, content } : item
       );
@@ -208,6 +243,10 @@ export function Note({
         if (response.ok) {
           const { note: updatedNote } = await response.json();
           onUpdate?.(updatedNote);
+          // Log content change if different
+          if (oldContent !== content) {
+            logActivity("task_updated", "checklist", itemId, `updated "${oldContent}" to "${content}" in ${noteOwnerName}'s note`);
+          }
         } else {
           onUpdate?.(note);
         }
@@ -300,6 +339,8 @@ export function Note({
         if (response.ok) {
           const { note: updatedNote } = await response.json();
           onUpdate?.(updatedNote);
+          // Log activity
+          logActivity("task_added", "checklist", newItem.id, `${content} to ${noteOwnerName}'s note`);
         } else {
           onUpdate?.(note);
         }
@@ -341,6 +382,7 @@ export function Note({
 
   const handleReassignNote = async (newUserId: string) => {
     try {
+      const oldAssigneeName = noteOwnerName;
       const response = await fetch(`/api/notes/${note.id}/assign`, {
         method: "PATCH",
         headers: {
@@ -355,6 +397,10 @@ export function Note({
         const { note: updatedNote } = await response.json();
         onUpdate?.(updatedNote);
         setShowReassignDialog(false);
+
+        // Log reassignment activity
+        const newAssigneeName = updatedNote.user.name || updatedNote.user.email.split("@")[0];
+        logActivity("note_reassigned", "note", note.id, `reassigned ${oldAssigneeName}'s note to ${newAssigneeName}`);
       } else {
         console.error("Failed to reassign note");
       }

@@ -16,11 +16,13 @@ import {
   XIcon,
   StickyNote,
   Plus,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { Note as NoteCard } from "@/components/note";
 import { UserSelector } from "@/components/user-selector";
+import { ActivityPanel } from "@/components/activity-panel";
 
 import {
   AlertDialog,
@@ -92,6 +94,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     description: string;
   }>({ open: false, title: "", description: "" });
   const pendingDeleteTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Track notes that were restored via undo - don't log these as deleted
+  const restoredNotesRef = useRef<Set<string>>(new Set());
   const [boardSettingsDialog, setBoardSettingsDialog] = useState(false);
   const [boardSettings, setBoardSettings] = useState({
     name: "",
@@ -103,6 +107,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(false);
   const [addNoteDialog, setAddNoteDialog] = useState(false);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
+  const [showActivityPanel, setShowActivityPanel] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -309,6 +314,33 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     }
   };
 
+  // Log activity helper
+  const logActivity = async (
+    action: string,
+    entityType: string,
+    entityId: string,
+    entityTitle?: string
+  ) => {
+    try {
+      const targetBoardId = boardId === "all-notes" ? notes[0]?.boardId : boardId;
+      if (!targetBoardId) return;
+
+      await fetch("/api/activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          entityType,
+          entityId,
+          entityTitle,
+          boardId: targetBoardId,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+  };
+
   // Adapter: bridge component Note -> existing update handler
   const handleUpdateNoteFromComponent = async (updatedNote: Note) => {
     // Find the note to get its board ID for all notes view
@@ -352,6 +384,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       if (response.ok) {
         const { note } = await response.json();
         setNotes((prev) => [...prev, note]);
+        // Log activity with assignee info
+        const assigneeName = note.user.name || note.user.email.split("@")[0];
+        const actionText = user?.id === note.createdBy
+          ? `created a note for ${assigneeName}`
+          : `assigned a note to ${assigneeName}`;
+        logActivity("note_created", "note", note.id, actionText);
         if (searchTerm.trim() || dateRange.startDate || dateRange.endDate || selectedAuthor) {
           setSearchTerm("");
           setDebouncedSearchTerm("");
@@ -396,6 +434,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       if (response.ok) {
         const { note } = await response.json();
         setNotes((prev) => [...prev, note]);
+        // Log activity
+        logActivity("note_created", "note", note.id, "Copied note");
       }
     } catch (error) {
       console.error("Error copying note:", error);
@@ -423,6 +463,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
             title: "Failed to delete note",
             description: errorData?.error || "Failed to delete note",
           });
+        } else {
+          // Only log if note was NOT restored via undo
+          if (!restoredNotesRef.current.has(noteId)) {
+            const noteTitle = noteToDelete.checklistItems?.[0]?.content || "Untitled note";
+            logActivity("note_deleted", "note", noteId, noteTitle);
+          }
         }
       } catch (error) {
         console.error("Error deleting note:", error);
@@ -447,6 +493,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
             clearTimeout(t);
             delete pendingDeleteTimeoutsRef.current[noteId];
           }
+          // Mark note as restored so we don't log it as deleted
+          restoredNotesRef.current.add(noteId);
           setNotes((prev) => [noteToDelete, ...prev]);
         },
       },
@@ -852,6 +900,21 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                   className="h-9"
                 />
               </div>
+
+              {/* Activity Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowActivityPanel(true)}
+                aria-label="Activity"
+                title="Activity"
+                className={`flex items-center size-9 ${
+                  showActivityPanel ? "bg-zinc-100 dark:bg-zinc-800" : ""
+                }`}
+              >
+                <Clock className="size-4" />
+              </Button>
+
               {boardId !== "all-notes" && boardId !== "archive" && (
                 <Button
                   variant="ghost"
@@ -1345,6 +1408,13 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Activity Panel */}
+      <ActivityPanel
+        boardId={boardId || ""}
+        open={showActivityPanel}
+        onClose={() => setShowActivityPanel(false)}
+      />
     </div>
   );
 }

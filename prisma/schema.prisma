@@ -61,6 +61,7 @@ model User {
   invitedOrganizations OrganizationInvite[]
   createdSelfServeInvites OrganizationSelfServeInvite[]
   notes          Note[]
+  activities     ActivityLog[]
 
   @@index([organizationId], name: "idx_user_org")
   @@map("users")
@@ -180,4 +181,20 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  action    String   // e.g., "note_created", "note_updated", "task_completed"
+  entityType String  // e.g., "note", "checklist"
+  entityId  String   // ID of the entity (note, checklist, etc.)
+  entityTitle String? // Preview/title of the entity
+  boardId   String   // Which board this activity belongs to
+  userId    String   // Who performed the action
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([boardId, createdAt], name: "idx_activity_board_created")
+  @@index([userId, createdAt], name: "idx_activity_user_created")
+  @@map("activity_logs")
 }
