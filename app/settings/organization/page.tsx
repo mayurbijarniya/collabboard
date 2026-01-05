@@ -363,9 +363,6 @@ export default function OrganizationSettingsPage() {
 
   const handleToggleAdmin = async (memberId: string, currentAdminStatus: boolean) => {
     try {
-      // Find member info for activity logging
-      const member = user?.organization?.members?.find((m: { id: string }) => m.id === memberId);
-      const memberName = member?.name || member?.email?.split("@")[0] || "Unknown";
       const newStatus = !currentAdminStatus;
 
       const response = await fetch(`/api/organization/members/${memberId}`, {
@@ -380,26 +377,6 @@ export default function OrganizationSettingsPage() {
 
       if (response.ok) {
         await refreshUser();
-        // Log admin role change activity
-        try {
-          const action = newStatus ? "member_made_admin" : "member_removed_admin";
-          const actionText = newStatus
-            ? `made ${memberName} an admin`
-            : `removed ${memberName}'s admin role`;
-          await fetch("/api/activity", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action,
-              entityType: "member",
-              entityId: memberId,
-              entityTitle: actionText,
-              boardId: "",
-            }),
-          });
-        } catch (actError) {
-          console.error("Failed to log admin activity:", actError);
-        }
       } else {
         const errorData = await response.json();
         setErrorDialog({

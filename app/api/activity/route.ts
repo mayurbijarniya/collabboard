@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     const { action, entityType, entityId, entityTitle, boardId } = await req.json();
 
-    if (!action || !entityType || !entityId || !boardId) {
+    if (!action || !entityType || !entityId || boardId === undefined || boardId === null) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -80,7 +80,12 @@ export async function GET(req: NextRequest) {
     }
 
     const activities = await db.activityLog.findMany({
-      where: { boardId },
+      where: {
+        OR: [
+          { boardId }, // Board-specific activities
+          { boardId: "" }, // Org-level activities (empty boardId)
+        ],
+      },
       include: {
         user: {
           select: {
@@ -96,7 +101,14 @@ export async function GET(req: NextRequest) {
       skip: offset,
     });
 
-    const total = await db.activityLog.count({ where: { boardId } });
+    const total = await db.activityLog.count({
+      where: {
+        OR: [
+          { boardId },
+          { boardId: "" },
+        ],
+      },
+    });
 
     return NextResponse.json({ activities, total });
   } catch (error) {

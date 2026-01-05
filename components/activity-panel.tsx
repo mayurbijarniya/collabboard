@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Clock, CheckSquare, StickyNote, Plus, X, Trash2, UserCheck, Shield, ShieldCheck } from "lucide-react";
+import { Loader2, Clock, CheckSquare, StickyNote, Plus, X, Trash2, UserCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface Activity {
@@ -41,9 +41,6 @@ const actionLabels: Record<string, { label: string; icon: typeof StickyNote }> =
   task_added: { label: "added a task", icon: Plus },
   task_deleted: { label: "deleted a task", icon: Trash2 },
   task_updated: { label: "updated a task", icon: CheckSquare },
-  checklist_created: { label: "created a checklist", icon: CheckSquare },
-  member_made_admin: { label: "made member an admin", icon: ShieldCheck },
-  member_removed_admin: { label: "removed admin role", icon: Shield },
 };
 
 function formatEntityTitle(title: string | null): string {
