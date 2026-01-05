@@ -46,7 +46,7 @@ const actionLabels: Record<string, { label: string; icon: typeof StickyNote }> =
   member_removed_admin: { label: "removed admin role", icon: Shield },
 };
 
-function formatEntityTitle(title: string | null, entityType: string): string {
+function formatEntityTitle(title: string | null): string {
   if (!title) return "";
 
   // Truncate long titles
@@ -153,7 +153,7 @@ export function ActivityPanel({ boardId, open, onClose }: ActivityPanelProps) {
                   </p>
                   {activity.entityTitle && (
                     <p className="text-zinc-600 dark:text-zinc-400 truncate text-xs mt-0.5">
-                      &ldquo;{formatEntityTitle(activity.entityTitle, activity.entityType)}&rdquo;
+                      &ldquo;{formatEntityTitle(activity.entityTitle)}&rdquo;
                     </p>
                   )}
                   <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
