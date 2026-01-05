@@ -1,6 +1,6 @@
 # CollabBoard
 
-A real-time collaborative task management platform with sticky notes-style boards.
+A real-time collaborative task management application with sticky notes-style boards.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
