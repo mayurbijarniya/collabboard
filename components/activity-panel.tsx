@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -59,15 +59,17 @@ export function ActivityPanel({ boardId, open, onClose }: ActivityPanelProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
+  const offsetRef = useRef(0);
+  const [error, setError] = useState<string | null>(null);
 
   const loadActivities = useCallback(async (reset = false) => {
     if (!open) return;
 
     setLoading(true);
-    const currentOffset = reset ? 0 : offset;
+    const currentOffset = reset ? 0 : offsetRef.current;
     const newOffset = currentOffset + 20;
 
+    setError(null);
     try {
       const params = new URLSearchParams({
         boardId,
@@ -84,14 +86,15 @@ export function ActivityPanel({ boardId, open, onClose }: ActivityPanelProps) {
           setActivities((prev) => [...prev, ...data.activities]);
         }
         setHasMore(data.activities.length === 20);
-        setOffset(newOffset);
+        offsetRef.current = newOffset;
       }
     } catch (error) {
       console.error("Failed to load activities:", error);
+      setError("Failed to load activities. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [boardId, open, offset]);
+  }, [boardId, open]);
 
   useEffect(() => {
     if (open) {
@@ -117,10 +120,24 @@ export function ActivityPanel({ boardId, open, onClose }: ActivityPanelProps) {
       {/* Activity List */}
       <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-4 h-full">{activities.length === 0 && !loading && (
-            <div className="text-center text-zinc-500 dark:text-zinc-400 py-8">
-              <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No activity yet</p>
-              <p className="text-xs mt-1">Activities will appear here</p>
+          <div className="text-center text-zinc-500 dark:text-zinc-400 py-8">
+            <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">No activity yet</p>
+            <p className="text-xs mt-1">Activities will appear here</p>
+          </div>
+        )}
+
+          {error && (
+            <div className="text-center text-red-500 dark:text-red-400 py-8">
+              <p className="text-sm">{error}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2"
+                onClick={() => loadActivities(true)}
+              >
+                Retry
+              </Button>
             </div>
           )}
 
