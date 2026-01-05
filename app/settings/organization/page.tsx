@@ -377,6 +377,25 @@ export default function OrganizationSettingsPage() {
 
       if (response.ok) {
         await refreshUser();
+        // Log admin role change activity (org-level, shows on all boards)
+        const member = user?.organization?.members?.find((m: { id: string }) => m.id === memberId);
+        const memberName = member?.name || member?.email?.split("@")[0] || "a member";
+        const action = newStatus ? "member_made_admin" : "member_removed_admin";
+        const actionText = newStatus
+          ? `made ${memberName} an admin`
+          : `removed ${memberName}'s admin role`;
+
+        await fetch("/api/activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            entityType: "member",
+            entityId: memberId,
+            entityTitle: actionText,
+            boardId: "", // Empty = org-level activity, shows on all boards
+          }),
+        });
       } else {
         const errorData = await response.json();
         setErrorDialog({
