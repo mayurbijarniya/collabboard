@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type PropsWithChildren } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Globe,
@@ -127,6 +128,9 @@ function FadeIn({ children, delay = 0 }: PropsWithChildren<{ delay?: number }>) 
 }
 
 export default function HomePage() {
+  const { status } = useSession();
+  const authCtaHref = status === "authenticated" ? "/dashboard" : "/auth/signin";
+
   useEffect(() => {
     const anchors = document.querySelectorAll<HTMLAnchorElement>("a[href^='#']");
     const handleClick = (e: MouseEvent) => {
@@ -175,7 +179,7 @@ export default function HomePage() {
                 <FadeIn delay={200}>
                   <div className="flex flex-wrap gap-3">
                     <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <Link href="/auth/signin">
+                      <Link href={authCtaHref}>
                         Start free
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>

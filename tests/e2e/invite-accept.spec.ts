@@ -2,7 +2,7 @@ import { test as base, expect } from "../fixtures/test-helpers";
 
 // Extend base test with inviteToken fixture that seeds an invite before each scenario
 const test = base.extend<{ inviteToken: string }>({
-  inviteToken: async ({ testContext, testPrisma }, use) => {
+  inviteToken: async ({ testContext, testPrisma }, provideInviteToken) => {
     // Create a separate organization and user to send the invite
     const inviterOrgId = testContext.prefix("invite-org");
     const inviterUserId = testContext.prefix("invite-user");
@@ -31,7 +31,7 @@ const test = base.extend<{ inviteToken: string }>({
       },
     });
 
-    await use(invite.id);
+    await provideInviteToken(invite.id);
   },
 });
 

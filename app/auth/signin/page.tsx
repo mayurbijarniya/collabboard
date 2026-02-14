@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, Suspense, useCallback } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
@@ -88,6 +88,30 @@ function SignInContent() {
   const [showGmailWarning, setShowGmailWarning] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
   const router = useRouter();
+  const { status } = useSession();
+
+  const getRedirectPath = useCallback(() => {
+    const callbackUrl = searchParams.get("callbackUrl");
+    if (!callbackUrl) return "/dashboard";
+    if (callbackUrl.startsWith("/")) return callbackUrl;
+
+    try {
+      const parsedUrl = new URL(callbackUrl);
+      if (parsedUrl.origin === window.location.origin) {
+        return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+      }
+    } catch {
+      // Fall through to the default dashboard route for invalid callback URLs.
+    }
+
+    return "/dashboard";
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace(getRedirectPath());
+    }
+  }, [getRedirectPath, router, status]);
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -248,6 +272,10 @@ function SignInContent() {
         </Card>
       </div>
     );
+  }
+
+  if (status === "loading" || status === "authenticated") {
+    return <LoadingFallback />;
   }
 
   return (

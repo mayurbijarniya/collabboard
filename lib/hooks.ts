@@ -4,23 +4,23 @@ export function useBoardColumnMeta() {
   const [screenWidth, setScreenWidth] = useState(0);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    const handleResize = () => {
-      if (typeof window !== "undefined") {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          setScreenWidth(window.innerWidth);
-        }, 50);
-      }
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const syncScreenWidth = () => {
+      setScreenWidth(window.innerWidth);
     };
 
-    if (typeof window !== "undefined") {
-      setScreenWidth(window.innerWidth);
-    }
+    const handleResize = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(syncScreenWidth, 50);
+    };
+
+    const frameId = window.requestAnimationFrame(syncScreenWidth);
     window.addEventListener("resize", handleResize);
+
     return () => {
+      window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", handleResize);
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 

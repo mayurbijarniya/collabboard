@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { format, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -23,60 +23,87 @@ function DateRangePicker({
   onDateRangeChange,
   disabled = false,
 }: DateRangePickerProps) {
-  const [internalStartDate, setInternalStartDate] = useState<Date | null>(startDate || null);
-  const [internalEndDate, setInternalEndDate] = useState<Date | null>(endDate || null);
+  const [draftDates, setDraftDates] = useState<{
+    startDate: Date | null;
+    endDate: Date | null;
+  } | null>(null);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isStartPopoverOpen, setIsStartPopoverOpen] = useState(false);
   const [isEndPopoverOpen, setIsEndPopoverOpen] = useState(false);
 
+  const activeStartDate = draftDates?.startDate ?? startDate ?? null;
+  const activeEndDate = draftDates?.endDate ?? endDate ?? null;
+
   const formatDate = (date: Date | null) => (date ? format(date, "LLL dd, y") : "");
 
   const getDisplayText = () => {
-    if (internalStartDate && internalEndDate) {
-      return `${formatDate(internalStartDate)} - ${formatDate(internalEndDate)}`;
-    } else if (internalStartDate) {
-      return `${formatDate(internalStartDate)} - ...`;
-    } else if (internalEndDate) {
-      return `... - ${formatDate(internalEndDate)}`;
+    if (activeStartDate && activeEndDate) {
+      return `${formatDate(activeStartDate)} - ${formatDate(activeEndDate)}`;
+    } else if (activeStartDate) {
+      return `${formatDate(activeStartDate)} - ...`;
+    } else if (activeEndDate) {
+      return `... - ${formatDate(activeEndDate)}`;
     }
     return "Select date range";
   };
 
   const handleStartCalendarSelect = (date: Date | undefined) => {
     if (date) {
-      setInternalStartDate(date);
-      if (internalEndDate && isAfter(date, internalEndDate)) {
-        setInternalEndDate(null);
-      }
+      setDraftDates((currentDraft) => {
+        const currentEndDate = currentDraft?.endDate ?? endDate ?? null;
+        return {
+          startDate: date,
+          endDate: currentEndDate && isAfter(date, currentEndDate) ? null : currentEndDate,
+        };
+      });
     }
+
     setIsStartPopoverOpen(false);
   };
 
   const handleEndCalendarSelect = (date: Date | undefined) => {
-    if (date && internalStartDate && isAfter(internalStartDate, date)) return;
-    setInternalEndDate(date || null);
+    if (date && activeStartDate && isAfter(activeStartDate, date)) return;
+
+    setDraftDates((currentDraft) => ({
+      startDate: currentDraft?.startDate ?? startDate ?? null,
+      endDate: date || null,
+    }));
     setIsEndPopoverOpen(false);
   };
 
   const handleClear = () => {
-    setInternalStartDate(null);
-    setInternalEndDate(null);
+    setDraftDates({ startDate: null, endDate: null });
     onDateRangeChange?.(null, null);
     setIsFilterDropdownOpen(false);
+    setIsStartPopoverOpen(false);
+    setIsEndPopoverOpen(false);
   };
 
   const handleApply = () => {
-    onDateRangeChange?.(internalStartDate, internalEndDate);
+    onDateRangeChange?.(activeStartDate, activeEndDate);
     setIsFilterDropdownOpen(false);
+    setIsStartPopoverOpen(false);
+    setIsEndPopoverOpen(false);
   };
 
-  useEffect(() => {
-    setInternalStartDate(startDate || null);
-    setInternalEndDate(endDate || null);
-  }, [startDate, endDate]);
+  const handleFilterDropdownOpenChange = (isOpen: boolean) => {
+    setIsFilterDropdownOpen(isOpen);
+
+    if (isOpen) {
+      setDraftDates({
+        startDate: startDate || null,
+        endDate: endDate || null,
+      });
+      return;
+    }
+
+    setDraftDates(null);
+    setIsStartPopoverOpen(false);
+    setIsEndPopoverOpen(false);
+  };
 
   return (
-    <Popover open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
+    <Popover open={isFilterDropdownOpen} onOpenChange={handleFilterDropdownOpenChange}>
       <PopoverTrigger asChild>
         <Button
           data-testid="date-range-trigger"
@@ -116,18 +143,16 @@ function DateRangePicker({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !internalStartDate && "text-muted-foreground"
+                      !activeStartDate && "text-muted-foreground"
                     )}
                   >
-                    {internalStartDate
-                      ? format(internalStartDate, "LLL dd, y")
-                      : "Pick a start date"}
+                    {activeStartDate ? format(activeStartDate, "LLL dd, y") : "Pick a start date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 text-muted-foreground dark:text-zinc-200">
                   <Calendar
                     mode="single"
-                    selected={internalStartDate || undefined}
+                    selected={activeStartDate || undefined}
                     onSelect={handleStartCalendarSelect}
                     modifiersClassNames={{
                       outside: "text-gray-400 opacity-50 pointer-events-none",
@@ -154,18 +179,18 @@ function DateRangePicker({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !internalEndDate && "text-muted-foreground"
+                      !activeEndDate && "text-muted-foreground"
                     )}
                   >
-                    {internalEndDate ? format(internalEndDate, "LLL dd, y") : "Pick an end date"}
+                    {activeEndDate ? format(activeEndDate, "LLL dd, y") : "Pick an end date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 text-muted-foreground dark:text-zinc-200">
                   <Calendar
                     mode="single"
-                    selected={internalEndDate || undefined}
+                    selected={activeEndDate || undefined}
                     onSelect={handleEndCalendarSelect}
-                    disabled={(date) => (internalStartDate ? date < internalStartDate : false)}
+                    disabled={(date) => (activeStartDate ? date < activeStartDate : false)}
                     modifiersClassNames={{
                       outside: "text-gray-400 opacity-50 pointer-events-none",
                     }}

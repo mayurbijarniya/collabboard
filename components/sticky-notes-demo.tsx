@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Note as NoteComponent } from "@/components/note";
 import type { Note } from "@/components/note";
@@ -390,12 +391,12 @@ export function StickyNotesDemo() {
         </motion.div>
       </div>
       <div className="mt-4 text-center">
-        <a
+        <Link
           href="/public/boards/demo"
           className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-1"
         >
           View a public demo board <span aria-hidden="true">&rarr;</span>
-        </a>
+        </Link>
       </div>
     </div>
   );
