@@ -7,7 +7,7 @@ import OrganizationSetupForm from "./form";
 import { env } from "@/lib/env";
 import { headers } from "next/headers";
 import { getBaseUrl } from "@/lib/utils";
-import { createInvitationEmailHTML } from "@/lib/custom-resend-provider";
+import { createInvitationEmailHTML } from "@/lib/email-templates";
 
 const resend = new Resend(env.AUTH_RESEND_KEY);
 

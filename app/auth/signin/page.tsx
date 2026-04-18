@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, Suspense, useCallback } from "react";
+import Image from "next/image";
+import { type FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -15,20 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, ArrowRight, Loader2, ExternalLink, ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { isValidEmail } from "@/lib/utils";
-import Image from "next/image";
 
-const emailProviders = [
-  {
-    name: "Gmail",
-    url: "https://mail.google.com",
-  },
-  {
-    name: "Outlook",
-    url: "https://outlook.cloud.microsoft/mail/",
-  },
-];
+const OTP_LENGTH = 6;
 
 const oauthProviders = [
   {
@@ -73,19 +64,34 @@ const oauthProviders = [
   },
 ];
 
+type OtpRequestResponse = {
+  error?: string;
+  expiresAt?: string;
+  resendAvailableAt?: string;
+};
+
 function SignInContent() {
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [isResent, setIsResent] = useState(false);
-  const [emailError, setEmailError] = useState("");
   const router = useRouter();
   const { status } = useSession();
 
+  const invitationEmail = searchParams.get("email");
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const isInvitationFlow = Boolean(invitationEmail);
+
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [emailError, setEmailError] = useState("");
+  const [codeError, setCodeError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  const [resendAvailableAt, setResendAvailableAt] = useState<string | null>(null);
+  const [codeExpiresAt, setCodeExpiresAt] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
   const getRedirectPath = useCallback(() => {
-    const callbackUrl = searchParams.get("callbackUrl");
     if (!callbackUrl) return "/dashboard";
     if (callbackUrl.startsWith("/")) return callbackUrl;
 
@@ -95,11 +101,11 @@ function SignInContent() {
         return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
       }
     } catch {
-      // Fall through to the default dashboard route for invalid callback URLs.
+      return "/dashboard";
     }
 
     return "/dashboard";
-  }, [searchParams]);
+  }, [callbackUrl]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -108,18 +114,177 @@ function SignInContent() {
   }, [getRedirectPath, router, status]);
 
   useEffect(() => {
-    const emailParam = searchParams.get("email");
-    if (emailParam) {
-      setEmail(emailParam);
+    if (invitationEmail) {
+      setEmail(invitationEmail);
     }
-  }, [searchParams]);
+  }, [invitationEmail]);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam) {
       router.replace(`/auth/error?error=${errorParam}`);
     }
-  }, [searchParams, router]);
+  }, [router, searchParams]);
+
+  useEffect(() => {
+    if (!email || step !== "email") return;
+
+    const timeoutId = setTimeout(() => {
+      if (!isValidEmail(email)) {
+        setEmailError("Please enter a valid email address");
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [email, step]);
+
+  useEffect(() => {
+    if (step !== "code" || !resendAvailableAt) return;
+
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [resendAvailableAt, step]);
+
+  const resendSecondsRemaining = useMemo(() => {
+    if (!resendAvailableAt) return 0;
+    return Math.max(0, Math.ceil((new Date(resendAvailableAt).getTime() - currentTime) / 1000));
+  }, [currentTime, resendAvailableAt]);
+
+  const codeExpiresInMinutes = useMemo(() => {
+    if (!codeExpiresAt) return null;
+
+    const minutesRemaining = Math.max(
+      1,
+      Math.ceil((new Date(codeExpiresAt).getTime() - currentTime) / (60 * 1000))
+    );
+
+    return minutesRemaining;
+  }, [codeExpiresAt, currentTime]);
+
+  const formattedCode = useMemo(() => {
+    if (!code) return "";
+    if (code.length <= 3) return code;
+    return `${code.slice(0, 3)}-${code.slice(3)}`;
+  }, [code]);
+
+  const requestCode = useCallback(
+    async (isResend = false) => {
+      if (!isValidEmail(email)) {
+        setEmailError(email ? "Please enter a valid email address" : "Email address is required");
+        return;
+      }
+
+      setEmailError("");
+      setCodeError("");
+      setStatusMessage("");
+      setIsSendingCode(true);
+
+      try {
+        const response = await fetch("/api/auth/otp/request", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            callbackUrl,
+          }),
+        });
+
+        const payload = (await response.json().catch(() => null)) as OtpRequestResponse | null;
+
+        if (!response.ok) {
+          if (payload?.resendAvailableAt) {
+            setResendAvailableAt(payload.resendAvailableAt);
+            setCurrentTime(Date.now());
+          }
+
+          setEmailError(payload?.error || "We couldn't send a sign-in code. Please try again.");
+          return;
+        }
+
+        setStep("code");
+        setCode("");
+        setResendAvailableAt(payload?.resendAvailableAt || null);
+        setCodeExpiresAt(payload?.expiresAt || null);
+        setCurrentTime(Date.now());
+        setStatusMessage(
+          isResend ? "New code sent. Check your inbox." : "Code sent. Check your inbox."
+        );
+      } catch (error) {
+        console.error("OTP request failed:", error);
+        setEmailError("We couldn't send a sign-in code. Please try again.");
+      } finally {
+        setIsSendingCode(false);
+      }
+    },
+    [callbackUrl, email]
+  );
+
+  const handleEmailSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      await requestCode(false);
+    },
+    [requestCode]
+  );
+
+  const handleCodeSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (code.length !== OTP_LENGTH) {
+        setCodeError(`Enter the ${OTP_LENGTH}-digit code from your email`);
+        return;
+      }
+
+      setCodeError("");
+      setEmailError("");
+      setStatusMessage("");
+      setIsVerifyingCode(true);
+
+      try {
+        const response = await fetch("/api/auth/otp/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            code,
+            callbackUrl,
+          }),
+        });
+
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string; redirectTo?: string }
+          | null;
+
+        if (!response.ok || !payload?.redirectTo) {
+          setCodeError(payload?.error || "We couldn't verify that code. Please try again.");
+          return;
+        }
+
+        setStatusMessage("Sign-in successful. Redirecting...");
+        window.location.assign(payload.redirectTo);
+      } catch (error) {
+        console.error("OTP verification failed:", error);
+        setCodeError("We couldn't verify that code. Please try again.");
+      } finally {
+        setIsVerifyingCode(false);
+      }
+    },
+    [callbackUrl, code, email]
+  );
+
+  const handleCodeChange = useCallback((value: string) => {
+    const digitsOnly = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setCode(digitsOnly);
+    if (codeError) setCodeError("");
+  }, [codeError]);
 
   const handleEmailChange = useCallback(
     (value: string) => {
@@ -129,136 +294,20 @@ function SignInContent() {
     [emailError]
   );
 
-  useEffect(() => {
-    if (!email) return;
-
-    const timeoutId = setTimeout(() => {
-      if (email && !isValidEmail(email)) {
-        setEmailError("Please enter a valid email address");
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [email]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isValidEmail(email)) {
-      setEmailError(email ? "Please enter a valid email address" : "Email address is required");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
-      await signIn("resend", {
-        email,
-        redirect: false,
-        callbackUrl,
-      });
-      setIsSubmitted(true);
-    } catch (error) {
-      console.error("Sign in error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendEmail = async () => {
-    setIsResending(true);
-    try {
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
-      await signIn("resend", {
-        email,
-        redirect: false,
-        callbackUrl,
-      });
-      setIsResent(true);
-      setTimeout(() => {
-        setIsResent(false);
-      }, 2500);
-    } catch (error) {
-      console.error("Resend email error:", error);
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-slate-50 dark:from-zinc-950 dark:to-zinc-900 p-4 sm:p-6">
-        <Card className="w-full max-w-sm sm:max-w-md bg-white/95 dark:bg-zinc-900/95 border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="text-center relative">
-            <div className="flex justify-start absolute top-4 left-4">
-              <Link
-                href="/"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back
-              </Link>
-            </div>
-            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mb-4 ring-1 ring-green-200/60 dark:ring-green-800/40">
-              <Mail className="w-6 h-6 text-green-700 dark:text-green-400" />
-            </div>
-            <CardTitle className="text-2xl text-foreground dark:text-zinc-100">
-              Check your email
-            </CardTitle>
-            <CardDescription className="text-muted-foreground dark:text-zinc-400">
-              We&apos;ve sent a magic link to{" "}
-              <strong className="text-foreground dark:text-zinc-100">{email}</strong>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground text-center mb-4 dark:text-zinc-400">
-              Click the link in the email to sign in to your account. The link will expire in 24
-              hours.
-            </p>
-            <p className="text-sm text-gray-500 dark:text-zinc-500 text-center mb-4">
-              It may take up to 2 minutes for the email to arrive.
-            </p>
-            <div className="space-y-2">
-              {emailProviders.map((provider) => (
-                <Button
-                  key={provider.name}
-                  variant="outline"
-                  className="w-full justify-between bg-white border-gray-200 text-gray-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900 transition-colors active:scale-95"
-                  onClick={() => window.open(provider.url, "_blank")}
-                >
-                  Open {provider.name}
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              variant="outline"
-              className="w-full bg-white border-gray-200 text-gray-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900 transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-zinc-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900"
-              onClick={handleResendEmail}
-              disabled={isResending}
-              aria-busy={isResending}
-            >
-              {isResending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending another email...
-                </>
-              ) : isResent ? (
-                "Sent!"
-              ) : (
-                "Send another email"
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
+  const handleResetToEmailStep = useCallback(() => {
+    setStep("email");
+    setCode("");
+    setCodeError("");
+    setStatusMessage("");
+    setCodeExpiresAt(null);
+    setResendAvailableAt(null);
+  }, []);
 
   if (status === "loading" || status === "authenticated") {
     return <LoadingFallback />;
   }
+
+  const isBusy = isSendingCode || isVerifyingCode;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-slate-50 dark:from-zinc-950 dark:to-zinc-900 p-4 sm:p-6">
@@ -279,23 +328,27 @@ function SignInContent() {
             </div>
           </Link>
           <CardTitle className="text-xl sm:text-2xl font-bold text-foreground dark:text-zinc-100 flex items-center gap-2 justify-center">
-            Welcome to CollabBoard
+            {step === "code" ? "Enter your sign-in code" : "Welcome to CollabBoard"}
           </CardTitle>
           <CardDescription className="text-muted-foreground dark:text-zinc-400">
-            {searchParams.get("email")
-              ? "we'll send you a magic link to verify your email address"
-              : "Enter your email address and we'll send you a magic link to sign in"}
+            {step === "code"
+              ? "Use the 6-digit code we just emailed you."
+              : isInvitationFlow
+                ? "We'll email you a 6-digit code to verify your email address."
+                : "Enter your email address and we'll send you a 6-digit sign-in code."}
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+
+        <form onSubmit={step === "email" ? handleEmailSubmit : handleCodeSubmit}>
           <CardContent className="space-y-4">
-            {searchParams.get("email") && (
+            {isInvitationFlow && (
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                  📧 You&apos;re signing in from an organization invitation
+                  You&apos;re signing in from an organization invitation.
                 </p>
               </div>
             )}
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground dark:text-zinc-200">
                 Email address
@@ -305,8 +358,8 @@ function SignInContent() {
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => handleEmailChange(e.target.value)}
-                disabled={isLoading || !!searchParams.get("email")}
+                onChange={(event) => handleEmailChange(event.target.value)}
+                disabled={isBusy || step === "code" || isInvitationFlow}
                 required
                 autoComplete="email"
                 inputMode="email"
@@ -318,28 +371,101 @@ function SignInContent() {
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1">{emailError}</p>
               )}
             </div>
+
+            {step === "code" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="code" className="text-foreground dark:text-zinc-200">
+                    Verification code
+                  </Label>
+                  <Input
+                    id="code"
+                    type="text"
+                    placeholder="XXX-XXX"
+                    value={formattedCode}
+                    onChange={(event) => handleCodeChange(event.target.value)}
+                    disabled={isBusy}
+                    required
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
+                    maxLength={OTP_LENGTH + 1}
+                    className={`h-12 text-center text-lg font-medium bg-white border-gray-300 text-foreground placeholder:text-gray-400 hover:border-gray-400 transition-colors ${
+                      codeError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                    }`}
+                  />
+                  {codeError && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">{codeError}</p>
+                  )}
+                </div>
+
+                <div className="rounded-md border border-gray-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950/50 px-3 py-3 text-sm text-muted-foreground dark:text-zinc-400 space-y-1">
+                  <p>
+                    {statusMessage
+                      ? statusMessage
+                      : codeExpiresInMinutes
+                        ? `Code expires in about ${codeExpiresInMinutes} minute(s).`
+                        : "Enter the code from your email."}
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
+
           <CardFooter className="flex flex-col">
             <Button
               type="submit"
               className="w-full h-12 font-medium mt-4 bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 transition-all focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-zinc-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900"
-              disabled={isLoading || !email || !!emailError}
-              aria-busy={isLoading}
+              disabled={
+                isBusy ||
+                !email ||
+                !!emailError ||
+                (step === "code" && code.length !== OTP_LENGTH)
+              }
+              aria-busy={isBusy}
             >
-              {isLoading ? (
+              {isSendingCode ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending magic link...
+                  Sending code...
+                </>
+              ) : isVerifyingCode ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verifying code...
                 </>
               ) : (
                 <>
-                  Continue with Email
+                  {step === "code" ? "Verify and continue" : "Continue with Email"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}
             </Button>
 
-            {/* Divider */}
+            {step === "code" && (
+              <div className="flex w-full gap-3 mt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 bg-white border-gray-200 text-gray-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900 transition-all active:scale-95"
+                  onClick={() => requestCode(true)}
+                  disabled={isBusy || resendSecondsRemaining > 0}
+                >
+                  {resendSecondsRemaining > 0 ? `Resend in ${resendSecondsRemaining}s` : "Resend code"}
+                </Button>
+                {!isInvitationFlow && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 bg-white border-gray-200 text-gray-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900 transition-all active:scale-95"
+                    onClick={handleResetToEmailStep}
+                    disabled={isBusy}
+                  >
+                    Change email
+                  </Button>
+                )}
+              </div>
+            )}
+
             <div className="relative mt-6 w-full">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-gray-200 dark:border-zinc-700" />
@@ -351,7 +477,6 @@ function SignInContent() {
               </div>
             </div>
 
-            {/* OAuth Buttons */}
             <div className="space-y-3 w-full mt-4">
               {oauthProviders.map((provider) => (
                 <Button
@@ -368,7 +493,6 @@ function SignInContent() {
             </div>
           </CardFooter>
         </form>
-
       </Card>
     </div>
   );

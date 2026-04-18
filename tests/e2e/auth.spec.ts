@@ -1,43 +1,45 @@
 import { test, expect } from "../fixtures/test-helpers";
 
 test.describe("Authentication Flow", () => {
-  test("should complete email authentication flow and verify database state", async ({ page }) => {
-    let emailSent = false;
+  test("should request an email sign-in code", async ({ page }) => {
+    let codeRequested = false;
     let authData: { email: string } | null = null;
 
-    await page.route("**/api/auth/signin/email", async (route) => {
-      emailSent = true;
+    await page.route("**/api/auth/otp/request", async (route) => {
+      codeRequested = true;
       const postData = await route.request().postDataJSON();
       authData = postData;
 
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ url: "/auth/verify-request" }),
+        body: JSON.stringify({
+          success: true,
+          email: "test@example.com",
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          resendAvailableAt: new Date(Date.now() + 60 * 1000).toISOString(),
+        }),
       });
     });
 
     await page.goto("/auth/signin");
 
-    await page.evaluate(() => {
-      const mockAuthData = { email: "test@example.com" };
-      fetch("/api/auth/signin/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mockAuthData),
-      });
-    });
+    await page.getByLabel("Email address").fill("test@example.com");
 
-    await page.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/auth/signin/email") &&
-        resp.request().method() === "POST" &&
-        resp.ok()
-    );
+    await Promise.all([
+      page.waitForResponse(
+        (resp) =>
+          resp.url().includes("/api/auth/otp/request") &&
+          resp.request().method() === "POST" &&
+          resp.ok()
+      ),
+      page.getByRole("button", { name: "Continue with Email" }).click(),
+    ]);
 
-    expect(emailSent).toBe(true);
+    expect(codeRequested).toBe(true);
     expect(authData).not.toBeNull();
     expect(authData!.email).toBe("test@example.com");
+    await expect(page.locator("text=Enter your sign-in code")).toBeVisible();
   });
 
   test("should authenticate user and access dashboard", async ({
@@ -138,22 +140,27 @@ test.describe("Authentication Flow", () => {
     await expect(authenticatedPage.locator("text=No boards yet")).toBeVisible();
   });
 
-  test("should link magic link and Google OAuth accounts when using same email", async ({
+  test("should link email OTP and Google OAuth accounts when using same email", async ({
     page,
   }) => {
     const testEmail = `linked+${Date.now()}@example.com`;
     const userId = `linked-user-${Date.now()}`;
-    let magicLinkAuthData: { email: string } | null = null;
+    let otpAuthData: { email: string } | null = null;
     let googleAuthData: { email: string } | null = null;
 
-    await page.route("**/api/auth/signin/email", async (route) => {
+    await page.route("**/api/auth/otp/request", async (route) => {
       const postData = await route.request().postDataJSON();
-      magicLinkAuthData = postData;
+      otpAuthData = postData;
 
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ url: "/auth/verify-request" }),
+        body: JSON.stringify({
+          success: true,
+          email: testEmail,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          resendAvailableAt: new Date(Date.now() + 60 * 1000).toISOString(),
+        }),
       });
     });
 
@@ -178,7 +185,7 @@ test.describe("Authentication Flow", () => {
             name: "Linked User",
             email: testEmail,
             image: "https://example.com/avatar.jpg",
-            providers: ["email", "google"],
+            providers: ["otp", "google"],
           },
         }),
       });
@@ -193,7 +200,7 @@ test.describe("Authentication Flow", () => {
             id: userId,
             name: "Linked User",
             email: testEmail,
-            providers: ["email", "google"],
+            providers: ["otp", "google"],
           },
         }),
       });
@@ -211,7 +218,7 @@ test.describe("Authentication Flow", () => {
 
     await page.evaluate((email) => {
       const mockAuthData = { email };
-      fetch("/api/auth/signin/email", {
+      fetch("/api/auth/otp/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(mockAuthData),
@@ -220,13 +227,13 @@ test.describe("Authentication Flow", () => {
 
     await page.waitForResponse(
       (resp) =>
-        resp.url().includes("/api/auth/signin/email") &&
+        resp.url().includes("/api/auth/otp/request") &&
         resp.request().method() === "POST" &&
         resp.ok()
     );
 
-    expect(magicLinkAuthData).not.toBeNull();
-    expect(magicLinkAuthData!.email).toBe(testEmail);
+    expect(otpAuthData).not.toBeNull();
+    expect(otpAuthData!.email).toBe(testEmail);
 
     await page.evaluate((email) => {
       const mockGoogleAuthData = { email };
@@ -252,25 +259,30 @@ test.describe("Authentication Flow", () => {
     await expect(page).toHaveURL(/.*dashboard/);
     await expect(page.locator("text=No boards yet")).toBeVisible();
 
-    expect(magicLinkAuthData!.email).toBe(googleAuthData!.email);
+    expect(otpAuthData!.email).toBe(googleAuthData!.email);
   });
 
-  test("should link magic link and GitHub OAuth accounts when using same email", async ({
+  test("should link email OTP and GitHub OAuth accounts when using same email", async ({
     page,
   }) => {
     const testEmail = `linked+${Date.now()}@example.com`;
     const userId = `linked-user-${Date.now()}`;
-    let magicLinkAuthData: { email: string } | null = null;
+    let otpAuthData: { email: string } | null = null;
     let githubAuthData: { email: string } | null = null;
 
-    await page.route("**/api/auth/signin/email", async (route) => {
+    await page.route("**/api/auth/otp/request", async (route) => {
       const postData = await route.request().postDataJSON();
-      magicLinkAuthData = postData;
+      otpAuthData = postData;
 
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ url: "/auth/verify-request" }),
+        body: JSON.stringify({
+          success: true,
+          email: testEmail,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          resendAvailableAt: new Date(Date.now() + 60 * 1000).toISOString(),
+        }),
       });
     });
 
@@ -295,7 +307,7 @@ test.describe("Authentication Flow", () => {
             name: "Linked User",
             email: testEmail,
             image: "https://avatars.githubusercontent.com/u/456?v=4",
-            providers: ["email", "github"],
+            providers: ["otp", "github"],
           },
         }),
       });
@@ -310,7 +322,7 @@ test.describe("Authentication Flow", () => {
             id: userId,
             name: "Linked User",
             email: testEmail,
-            providers: ["email", "github"],
+            providers: ["otp", "github"],
           },
         }),
       });
@@ -328,7 +340,7 @@ test.describe("Authentication Flow", () => {
 
     await page.evaluate((email) => {
       const mockAuthData = { email };
-      fetch("/api/auth/signin/email", {
+      fetch("/api/auth/otp/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(mockAuthData),
@@ -337,13 +349,13 @@ test.describe("Authentication Flow", () => {
 
     await page.waitForResponse(
       (resp) =>
-        resp.url().includes("/api/auth/signin/email") &&
+        resp.url().includes("/api/auth/otp/request") &&
         resp.request().method() === "POST" &&
         resp.ok()
     );
 
-    expect(magicLinkAuthData).not.toBeNull();
-    expect(magicLinkAuthData!.email).toBe(testEmail);
+    expect(otpAuthData).not.toBeNull();
+    expect(otpAuthData!.email).toBe(testEmail);
 
     await page.evaluate((email) => {
       const mockGitHubAuthData = { email };
@@ -369,7 +381,7 @@ test.describe("Authentication Flow", () => {
     await expect(page).toHaveURL(/.*dashboard/);
     await expect(page.locator("text=No boards yet")).toBeVisible();
 
-    expect(magicLinkAuthData!.email).toBe(githubAuthData!.email);
+    expect(otpAuthData!.email).toBe(githubAuthData!.email);
   });
 
   test("should redirect to dashboard if already a member of the organization (join link)", async ({

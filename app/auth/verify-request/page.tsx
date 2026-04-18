@@ -15,14 +15,14 @@ export default function VerifyRequest() {
             Check your email
           </CardTitle>
           <CardDescription className="text-zinc-600 dark:text-zinc-300">
-            We&apos;ve sent you a magic link to sign in
+            We&apos;ve sent you a one-time code to sign in
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center">
             <p className="text-sm text-muted-foreground dark:text-zinc-400">
-              Click the link in the email to sign in to your account. The link will expire in 24
-              hours.
+              Return to the sign-in page and enter the 6-digit code from your email. The code will
+              expire shortly for security.
             </p>
           </div>
           <div className="pt-4">

@@ -70,102 +70,6 @@ async function joinOrganization(token: string) {
   redirect("/dashboard");
 }
 
-async function autoCreateAccountAndJoin(token: string, formData: FormData) {
-  "use server";
-
-  const email = formData.get("email")?.toString();
-  if (!email) {
-    throw new Error("Email is required");
-  }
-
-  try {
-    // Find the self-serve invite by token
-    const invite = await db.organizationSelfServeInvite.findUnique({
-      where: { token: token },
-      include: { organization: true },
-    });
-
-    if (!invite || !invite.isActive) {
-      throw new Error("Invalid or inactive invitation link");
-    }
-
-    // Check if invite has expired
-    if (invite.expiresAt && invite.expiresAt < new Date()) {
-      throw new Error("This invitation link has expired");
-    }
-
-    // Check if usage limit has been reached
-    if (invite.usageLimit && invite.usageCount >= invite.usageLimit) {
-      throw new Error("This invitation link has reached its usage limit");
-    }
-
-    // Check if user already exists
-    let user = await db.user.findUnique({
-      where: { email },
-    });
-
-    // If user doesn't exist, create one with verified email and auto-join organization
-    if (!user) {
-      user = await db.user.create({
-        data: {
-          email,
-          emailVerified: new Date(), // Auto-verify since they clicked the invite link
-          organizationId: invite.organizationId, // Auto-join the organization
-        },
-      });
-    } else if (!user.organizationId) {
-      // If user exists but isn't in an organization, add them to this one
-      user = await db.user.update({
-        where: { id: user.id },
-        data: { organizationId: invite.organizationId },
-      });
-    } else if (user.organizationId === invite.organizationId) {
-      // User is already in this organization, just continue
-    } else {
-      throw new Error("You are already a member of another organization");
-    }
-
-    // Verify email if not already verified
-    if (!user.emailVerified) {
-      await db.user.update({
-        where: { id: user.id },
-        data: { emailVerified: new Date() },
-      });
-    }
-
-    // Increment usage count only if this is a new join
-    if (user.organizationId === invite.organizationId) {
-      await db.organizationSelfServeInvite.update({
-        where: { token: token },
-        data: { usageCount: { increment: 1 } },
-      });
-    }
-
-    // Create a session for the user
-    const sessionToken = crypto.randomUUID();
-    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-    await db.session.create({
-      data: {
-        sessionToken,
-        userId: user.id,
-        expires,
-      },
-    });
-
-    // Redirect to a special endpoint that will set the session cookie and redirect to dashboard
-    redirect(
-      `/api/auth/set-session?token=${sessionToken}&redirectTo=${encodeURIComponent("/dashboard")}`
-    );
-  } catch (error) {
-    console.error("Auto-join error:", error);
-    // Fallback to regular auth flow
-    redirect(
-      `/auth/signin?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(`/join/${token}`)}`
-    );
-  }
-}
-
 interface JoinPageProps {
   params: Promise<{
     token: string;
@@ -233,7 +137,7 @@ export default async function JoinPage({ params }: JoinPageProps) {
     );
   }
 
-  // If user is not authenticated, show join form
+  // If user is not authenticated, collect their email and continue through OTP sign-in.
   if (!session?.user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 p-4">
@@ -276,10 +180,8 @@ export default async function JoinPage({ params }: JoinPageProps) {
                   )}
                 </div>
               )}
-              <form
-                action={autoCreateAccountAndJoin.bind(null, invite.token!)}
-                className="space-y-5"
-              >
+              <form action="/auth/signin" method="GET" className="space-y-5">
+                <input type="hidden" name="callbackUrl" value={`/join/${invite.token}`} />
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
@@ -297,7 +199,7 @@ export default async function JoinPage({ params }: JoinPageProps) {
                   />
                 </div>
                 <Button type="submit" className="w-full px-4 py-5">
-                  Join {invite.organization.name}
+                  Continue with email verification
                 </Button>
               </form>
               <div className="text-center pt-4 border-t border-slate-200 dark:border-zinc-700">

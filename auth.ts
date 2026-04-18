@@ -4,12 +4,10 @@ import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import { db as prisma } from "@/lib/db";
 import { env } from "@/lib/env";
-import { createCustomResendProvider } from "@/lib/custom-resend-provider";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
-    createCustomResendProvider(),
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
@@ -23,7 +21,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   pages: {
     signIn: "/auth/signin",
-    verifyRequest: "/auth/verify-request",
     error: "/auth/error",
   },
   callbacks: {

@@ -108,6 +108,12 @@ export class TestContext {
             },
           });
 
+          await tx.emailOtp.deleteMany({
+            where: {
+              email: this.userEmail,
+            },
+          });
+
           await tx.user.deleteMany({
             where: {
               organizationId: this.organizationId,

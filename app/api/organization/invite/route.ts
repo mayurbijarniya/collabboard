@@ -6,7 +6,7 @@ import { Resend } from "resend";
 import { getBaseUrl } from "@/lib/utils";
 import { z } from "zod";
 import { inviteSchema } from "@/lib/types";
-import { createInvitationEmailHTML } from "@/lib/custom-resend-provider";
+import { createInvitationEmailHTML } from "@/lib/email-templates";
 
 const resend = new Resend(env.AUTH_RESEND_KEY);
 

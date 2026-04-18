@@ -12,7 +12,7 @@ A real-time collaborative task management application with sticky notes-style bo
 - **Visual Boards** — Drag-and-drop sticky notes with checklists
 - **Team Collaboration** — Multi-user organizations with Admin/Member roles
 - **Activity Feed** — Real-time activity logging
-- **Authentication** — Email magic links, Google, and GitHub OAuth
+- **Authentication** — Email one-time codes, Google, and GitHub OAuth
 - **Public Boards** — Share read-only views with external stakeholders
 - **Slack Integration** — Webhook notifications for board updates
 - **Dark/Light Themes** — Multiple VS Code-inspired themes
@@ -30,7 +30,7 @@ A real-time collaborative task management application with sticky notes-style bo
 npm install
 cp .env.example .env
 npm run docker:up
-npm run db:push
+npm run db:migrate
 npm run dev
 ```
 
@@ -40,7 +40,7 @@ npm run dev
 DATABASE_URL="postgresql://user:password@localhost:5432/collabboard"
 AUTH_SECRET="your-secret-key"
 AUTH_RESEND_KEY="your-resend-api-key"
-EMAIL_FROM="noreply@yourdomain.com"
+EMAIL_FROM="CollabBoard <noreply@yourdomain.com>"
 
 # OAuth (optional)
 GOOGLE_CLIENT_ID=""
