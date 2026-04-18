@@ -58,7 +58,7 @@ const createEmailTemplate = (title: string, message: string, buttonText: string,
     <!-- Copyright -->
     <div style="text-align: center; padding: 24px 0;">
       <p style="color: #94a3b8; font-size: 12px; margin: 0;">
-        &copy; 2025 CollabBoard. All rights reserved.
+        &copy; 2026 CollabBoard. All rights reserved.
       </p>
     </div>
   </div>

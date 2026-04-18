@@ -22,7 +22,6 @@ import {
   Users,
   ExternalLink,
   Calendar as CalendarIconLucide,
-  AlertTriangle,
 } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
 import {
@@ -106,13 +105,6 @@ export default function OrganizationSettingsPage() {
   const [copiedInviteToken, setCopiedInviteToken] = useState<string | null>(null);
   const [orgDefaultColor, setOrgDefaultColor] = useState<NoteColor | null>(null);
   const [savingOrgColor, setSavingOrgColor] = useState(false);
-  const [showGmailWarning, setShowGmailWarning] = useState(false);
-  const [pendingInviteEmail, setPendingInviteEmail] = useState("");
-
-  // Helper to check if email is Gmail
-  const isGmailEmail = (email: string) => {
-    return email.toLowerCase().endsWith("@gmail.com");
-  };
 
   useEffect(() => {
     if (user?.organization) {
@@ -267,13 +259,6 @@ export default function OrganizationSettingsPage() {
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
-
-    // Check if non-Gmail email
-    if (!isGmailEmail(inviteEmail)) {
-      setPendingInviteEmail(inviteEmail);
-      setShowGmailWarning(true);
-      return;
-    }
 
     setInviting(true);
     try {
@@ -1166,37 +1151,6 @@ export default function OrganizationSettingsPage() {
               OK
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Gmail Warning Dialog */}
-      <AlertDialog open={showGmailWarning} onOpenChange={(open) => {
-        setShowGmailWarning(open);
-        if (!open) {
-          setPendingInviteEmail("");
-          setInviteEmail("");
-        }
-      }}>
-        <AlertDialogContent className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
-          <AlertDialogHeader className="text-center sm:text-left">
-            <div className="mx-auto sm:mx-0 w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-            </div>
-            <AlertDialogTitle className="text-lg sm:text-xl font-semibold text-foreground dark:text-zinc-100">
-              Gmail Address Required
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-muted-foreground dark:text-zinc-400 mt-2">
-              You&apos;re inviting <strong className="text-foreground dark:text-zinc-200">{pendingInviteEmail}</strong>.
-              Currently, we can only send magic links to <strong className="text-foreground dark:text-zinc-200">Gmail</strong> addresses.
-              <br /><br />
-              Please use a Gmail address or create a self-serve invite link for non-Gmail users.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="mt-4">
-            <AlertDialogCancel className="w-full bg-amber-600 hover:bg-amber-700 text-white border-amber-600 hover:border-amber-700">
-              Use Gmail Address
-            </AlertDialogCancel>
-          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>
