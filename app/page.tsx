@@ -6,11 +6,10 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { motion, useInView } from "framer-motion";
 import {
-  ArrowRight, ArrowUpRight, Check, Bell, Activity, Users, Settings,
-  Shield, Globe, Lock, Eye, CheckCircle, Home, FileText, UserPlus,
-  LayoutGrid, Mail, Calendar, Zap, PartyPopper, Heart, Star,
-  Lightbulb, Flag, Rocket, Smile, Trophy, Image as ImageIcon,
-  Ban, Pencil, ListChecks, Circle,
+  ArrowRight, ArrowUpRight, Check, Bell, Activity, Users,
+  Shield, Globe, Lock, Eye, CheckCircle, Home, FileText,
+  LayoutGrid, Mail, Calendar, Zap, PartyPopper, Star,
+  Rocket, Trophy, Image as ImageIcon, Ban,
 } from "lucide-react";
 import { LandingNavbar } from "@/components/landing-navbar";
 import { LandingFooter } from "@/components/landing-footer";
@@ -34,11 +33,6 @@ const CircleScribble = ({ className }: { className?: string }) => (
 const StarSVG = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M256 24L316 188H492L348 292L396 488L256 380L116 488L164 292L20 188H196L256 24Z" stroke="currentColor" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-  </svg>
-);
-const StarFillSVG = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 512 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M256 24L316 188H492L348 292L396 488L256 380L116 488L164 292L20 188H196L256 24Z"/>
   </svg>
 );
 const CrownSVG = ({ className }: { className?: string }) => (
@@ -84,11 +78,6 @@ const PaperAirplane = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M4 24L44 4L28 44L22 26L4 24Z" fill="currentColor"/>
     <path d="M22 26L44 4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-const HeartSVG = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
   </svg>
 );
 const SlackIcon = ({ className }: { className?: string }) => (
@@ -221,13 +210,13 @@ export default function HomePage() {
           </div>
 
           <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6">
-            <div className="hidden xl:flex absolute top-2 left-4 flex-col items-start z-20 select-none pointer-events-none">
+            <div className="hidden xl:flex absolute -top-1 left-4 flex-col items-start z-20 select-none pointer-events-none">
               <div className="relative inline-block px-4 py-2 bg-teal-50 text-teal-700 rounded-full text-sm font-semibold -rotate-2 border border-teal-200 shadow-sm">
                 <span className="font-hand text-lg">Teams work better together</span>
                 <PartyPopper className="w-4 h-4 ml-1 inline-block" />
                 <ScribbleUnderline className="absolute -bottom-1 left-2 w-[90%] h-2 text-teal-400" />
               </div>
-              <CurvedArrowDown className="w-10 h-10 text-teal-400 mt-0 ml-10 rotate-[-15deg]" />
+              <CurvedArrowDown className="w-10 h-10 text-teal-400 mt-1 ml-10 rotate-[-15deg]" />
             </div>
 
             <div className="hidden xl:block absolute top-6 right-[18%] z-20 select-none pointer-events-none text-right">
@@ -257,7 +246,7 @@ export default function HomePage() {
                 <FadeIn delay={0.1}>
                   <p className="text-lg sm:text-xl text-slate-600 dark:text-zinc-400 mb-8 leading-relaxed max-w-lg">
                     CollabBoard is your visual workspace for sticky notes, checklists, and real teamwork.
-                    Plan, organize, and get things done—together.
+                    Plan, organize, and get things done, together.
                   </p>
                 </FadeIn>
                 <FadeIn delay={0.2} className="flex flex-wrap gap-3 sm:gap-4">
@@ -478,7 +467,7 @@ export default function HomePage() {
               </FadeIn>
               <FadeIn delay={0.1}>
                 <p className="text-base sm:text-lg text-slate-600 dark:text-zinc-400 mb-8 max-w-md">
-                  From big ideas to daily tasks—capture everything with sticky notes and checklists that fit the way your team works.
+                  From big ideas to daily tasks. Capture everything with sticky notes and checklists that fit the way your team works.
                 </p>
               </FadeIn>
               <FadeIn delay={0.2} className="space-y-6 max-w-md">
@@ -664,7 +653,7 @@ export default function HomePage() {
               </FadeIn>
               <FadeIn delay={0.1}>
                 <p className="text-base sm:text-lg text-slate-600 dark:text-zinc-400 mb-8 max-w-md">
-                  Share boards with anyone. No sign-ups, no friction—just a clean, read-only view that keeps everyone in the loop.
+                  Share boards with anyone. No sign-ups, no friction, just a clean, read-only view that keeps everyone in the loop.
                 </p>
               </FadeIn>
               <FadeIn delay={0.2} className="space-y-6 max-w-md">
